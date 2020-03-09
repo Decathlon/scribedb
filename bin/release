@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# code release
+python -m unittest
+flake8 scribedb/
+bin/checkrelease.py
+git tag -a v$(bin/printversion) -m "Tagging release $(bin/printversion)"
+git push
+git push --tags

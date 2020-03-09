@@ -1,0 +1,13 @@
+#!/bin/bash
+
+
+# Generate documentation
+moduleversion=$(python -c "import scribedb; print(scribedb.__version__)")
+echo "v$moduleversion" > docs/_pdoc/version.mako
+
+pdoc \
+       --html \
+       --output-dir=docs/doc/$(python -c "import scribedb; print(scribedb.__version__)") \
+       --template-dir=docs/_pdoc \
+       --force \
+       scribedb
