@@ -1,0 +1,57 @@
+version: "3.0"
+services:
+  oradb:
+    #    image: example_oradb
+    build:
+      context: example/oracle
+    ports:
+      - 1521:1521
+    volumes:
+      - ~/docker/oracle-xe:/opt/oracle/oradata
+    environment:
+      - ORACLE_PASSWORD="Oracle18"
+    container_name: oradb
+  pgdb:
+    #  image: example_pgsql
+    build:
+      context: example/pgsql
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=hr
+    ports:
+      - 5432:5432
+    container_name: pgdb
+  scribedb:
+    build:
+      context: .
+      dockerfile: example/scribedb/Dockerfile
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - ORACLE_PASSWORD="Oracle18"
+      - ORACLE_USER="system"
+      - high_limit=6
+      - low_limit=4
+      - maxdiff=50
+      - cxstring2=hr/hr@oradb:1521/xe
+      - cxstring1=postgresql://postgres:postgres@pgdb:5432/hr
+      - cxrepo=postgresql://postgres:postgres@pgdb:5432/hr
+      - schema1=hr
+      - schema2=hr
+      - schemarepo=diffhr
+      - log=debug
+      - qry_include_table=lower(table_name) not in ('employees')
+    links:
+      - oradb
+      - pgdb
+    depends_on:
+      - pgdb
+      - oradb
+    command:
+      [
+        "./wait-for-postgres-and-oracle.sh",
+        "pgdb",
+        "oradb",
+        "python3",
+        "./scribedb.py",
+      ]
