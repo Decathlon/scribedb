@@ -199,7 +199,7 @@ class Table(TableRdbms):
         """
         schema = self.schema
         tableName = self.tableName
-        logging.debug(f"""get_order_by from {schema}.{tableName}""")
+        logging.debug(f"""get_pk from {schema}.{tableName}""")
         sql = f"""SELECT column_name FROM information_schema.table_constraints
         JOIN information_schema.key_column_usage USING
         (constraint_catalog, constraint_schema, constraint_name,table_catalog,
@@ -218,6 +218,36 @@ class Table(TableRdbms):
                 stp = stp + f"""{field},"""
         self.pk = stp.rstrip(',')
 
+    def set_order_by(self):
+        """
+        set the primary key fields of the table
+        used in dynamic query building for the order by clause
+        example : will create a string    "EMPLOYEE_ID"
+        """
+        schema = self.schema
+        tableName = self.tableName
+        logging.debug(f"""get_order_by from {schema}.{tableName}""")
+        sql = f"""SELECT column_name FROM information_schema.table_constraints
+        JOIN information_schema.key_column_usage USING
+        (constraint_catalog, constraint_schema, constraint_name,table_catalog,
+        table_schema, table_name) WHERE constraint_type = 'PRIMARY KEY'
+        AND (table_schema, table_name) = ('{schema}', '{tableName}') ORDER BY
+        ordinal_position"""
+        field = ""
+        conn = self.connect()
+        with conn:
+            with conn.cursor() as curs:
+                curs.execute(sql)
+                rows = curs.fetchall()
+                stp = ""
+                for row in rows:
+                    field = row[0]
+                    field_type = self.get_field_datatype(tableName,field)
+                    if "char" in field_type:
+                        field = field + " collate \"POSIX\" "
+                stp = stp + f"""{field},"""
+        self.order_by = stp.rstrip(',')
+
     def format_qry_last(self, start, stop):
         """
         use to build dynamic query of step 3. This query return a dataset.
@@ -235,7 +265,7 @@ class Table(TableRdbms):
             [string] --
 
         in the template, this function replace all variable
-        select {order_by},
+        select {fields},
             md5(concat) as md5_concat from
             (select {self.fields},
             {fields} as concat,
@@ -248,7 +278,7 @@ class Table(TableRdbms):
             md5(concat) as md5_concat from
             (select {self.fields},
             {self.concatened_fields} as concat,
-            row_number() over (order by {self.fields}) as numrow
+            row_number() over (order by {self.order_by}) as numrow
             from {self.schema}.{self.viewName}) q1
             {stlimit}
             """
@@ -276,7 +306,7 @@ class Table(TableRdbms):
         1 as nb from
         (select {self.concatened_fields} as concat
         from {self.schema}.{self.viewName}
-        order by {self.fields} {stlimit}) q1) r1"""
+        order by {self.order_by} {stlimit}) q1) r1"""
         # logging.critical(
         #    f"""{self.dbEngine}:format_qry : {sql}""")
         return sql

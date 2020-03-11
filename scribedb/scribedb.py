@@ -1434,7 +1434,7 @@ def init(schema1, schema2):
     for table in listTables:
         tablename = table[0]
         if repo.exists(cxRepo,schemaRepo,schema1,tablename) == 0:
-            logging.info(f"""initializing {tablename}""")
+            logging.info(f"""initializing table {tablename}""")
             table1.create(tablename,schema1,None)
             table2.create(tablename,schema2,None)
             repo.insert_table_diff(table1,table2)

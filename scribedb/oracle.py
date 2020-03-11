@@ -250,6 +250,26 @@ class Table(TableRdbms):
                     stp = stp + f"""{row[0]},"""
         self.pk = stp.rstrip(',')
 
+    def set_order_by(self):
+        """
+        set the primary key fields of the table
+        used in dynamic query building for the order by clause
+        example : will create a string  "EMPLOYEE_ID"
+        """
+        schema = self.schema
+        tableName = self.tableName
+        logging.debug(f"""__set_pk from {schema}.{tableName}""")
+        sql = f"""SELECT cols.column_name FROM all_constraints cons, all_cons_columns cols WHERE cols.table_name = upper('{tableName}') AND  cols.owner= upper('{schema}') and cons.constraint_type = 'P' AND cons.constraint_name = cols.constraint_name AND cons.owner =  cols.owner ORDER BY cols.table_name, cols.position"""
+        conn = self.connect()
+        with conn:
+            with conn.cursor() as curs:
+                curs.execute(sql)
+                rows = curs.fetchall()
+                stp = ""
+                for row in rows:
+                    stp = stp + f"""{row[0]},"""
+        self.order_by = stp.rstrip(',')
+
     def format_qry_last(self, start, stop):
         """
         use to build dynamic query of step 3. This query return a dataset.
