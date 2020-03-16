@@ -1,5 +1,7 @@
 FROM oraclelinux:7-slim
 
+LABEL maintainer "oss@decathlon.com"
+
 RUN  curl -o /etc/yum.repos.d/public-yum-ol7.repo https://yum.oracle.com/public-yum-ol7.repo && \
      yum -y install https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-7-x86_64/pgdg-oraclelinux96-9.6-3.noarch.rpm && \
      yum-config-manager --enable ol7_oracle_instantclient && \
