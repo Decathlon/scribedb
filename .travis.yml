@@ -3,7 +3,6 @@ language: python
 services:
     - docker
 install: pip install -r requirements.txt
-script: python -m pytest --cov=scribedb/ tests/
 before_deploy:
     - docker build -t decathlon/scribedb:$TRAVIS_TAG .
 deploy:
