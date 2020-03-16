@@ -4,6 +4,7 @@ services:
     - docker
 install: 
     - pip install -r requirements.txt
+    - cd scribedb/example && docker-compose build 
     - docker-compose up -d
 env:
     - DOCKER_COMPOSE_VERSION=1.25.4
