@@ -14,6 +14,8 @@ class Table():
         self.schema = schema
         self.nbfields = 0
         self.order_by = None
+        self.pk = None
+        self.pk_idx = None
 
     def cleanObjects(self, val):
         val = val.strip('.')
@@ -58,7 +60,8 @@ class Table():
                 col = result_order
                 colt = colt + col + ','
             colt = colt.rstrip(',')
-            self.order_by = colt[:-1]
+            self.order_by = colt
+            self.set_pk()
 
         self.create_view(schema,self.viewName,select)
         self.set_fields(self.viewName)
@@ -83,6 +86,12 @@ class Table():
         see in herited classe for details
         """
         raise NotImplementedError
+
+    def get_pk(self):
+        return self.pk
+
+    def get_pk_idx(self):
+        return self.pk_idx
 
     def set_order_by(self):
         """

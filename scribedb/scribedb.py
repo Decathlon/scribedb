@@ -585,6 +585,8 @@ class Repo():
         logging.debug(f"""step = 0 table_name = {table1.tableName}""")
         qry1 = table1.format_qry().replace("'","''")
         qry2 = table2.format_qry().replace("'","''")
+   #     qry1 = qry1.replace("\"", "\"\"")
+   #     qry2 = qry2.replace("\"", "\"\"")
         sql = f"""INSERT INTO {self.schemaRepo}.tablediff (
               cxstring1,
               schema1,
@@ -844,16 +846,20 @@ class Repo():
         def build_where(table, result_row):
             i = 0
             where_clause = ""
-            rows = table.order_by.split(',')
+            rowslist = table.get_pk()
+            rows = rowslist.split(',')
+            pk_idxlist = table.get_pk_idx()
+            pk_idx = pk_idxlist.split(',')
             for result_col in rows:
-                rst_row = result_row[ i ]
+                idx = int(pk_idx[i])
+                rst_row = result_row[idx - 1]
                 i = i + 1
-
                 # remove
                 # if rst_row == "3800497307669":
                 #    logging.info(f"""cdebug""")
                 if rst_row is not None:
                     columnname = result_col
+                    value_utf8 = ""
                     field_type = table.get_field_datatype(
                         table.viewName,columnname)
                     if ("char".upper() in field_type.upper()) or (
@@ -862,7 +868,13 @@ class Repo():
                             value_from_db = str(rst_row)
                         else:
                             value_from_db = rst_row
-                        value_utf8 = value_from_db.encode('utf-8')
+                        try:
+                            value_utf8 = value_from_db.encode('utf-8')
+                        except Exception as e:
+                            error, = e.args
+                            logging.error(
+                                f"""error executing encode for {value_from_db} : {error}""")
+
                         quote = "'"
                         where_clause = where_clause + ' AND ' + columnname + \
                             ' = ' + quote + \
@@ -1537,6 +1549,7 @@ if __name__ == '__main__':
     schema1 = os.environ.get("schema1", None)
     schema2 = os.environ.get("schema2", None)
     qry_include_table = os.environ.get("qry_include_table", "true")
+    step = os.environ.get("step","init+compute")
     if cxRepo is None:
         cxRepo = os.environ.get("cxRepo", None)
     if cxRepo is None:
@@ -1554,7 +1567,12 @@ if __name__ == '__main__':
         print(help_msg)
         sys.exit(2)
 
-    scribedb_return = init(schema1,schema2)
+    if step == "init+compute":
+        scribedb_return = init(schema1,schema2)
+        scribedb_return = init(schema1,schema2)
+    else:
+        scribedb_return = init(schema1,schema2)
+
     logging.debug(f"exit code:{scribedb_return}")
     scribedb_return = 0
     sys.exit(scribedb_return)

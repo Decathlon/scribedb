@@ -200,23 +200,26 @@ class Table(TableRdbms):
         schema = self.schema
         tableName = self.tableName
         logging.debug(f"""get_pk from {schema}.{tableName}""")
-        sql = f"""SELECT column_name FROM information_schema.table_constraints
+        sql = f"""SELECT c.column_name,c.ordinal_position FROM information_schema.table_constraints
         JOIN information_schema.key_column_usage USING
         (constraint_catalog, constraint_schema, constraint_name,table_catalog,
-        table_schema, table_name) WHERE constraint_type = 'PRIMARY KEY'
+        table_schema, table_name) 
+        join information_schema.columns c using (table_catalog,table_schema,table_name,column_name)
+        WHERE constraint_type = 'PRIMARY KEY'
         AND (table_schema, table_name) = ('{schema}', '{tableName}') ORDER BY
         ordinal_position"""
-        field = ""
+        stp = ""
+        stp_idx = ""
         conn = self.connect()
         with conn:
             with conn.cursor() as curs:
                 curs.execute(sql)
                 rows = curs.fetchall()
-                stp = ""
                 for row in rows:
-                    field = row[0]
-                stp = stp + f"""{field},"""
+                    stp = stp + f"""{row[0]},"""
+                    stp_idx = stp_idx + f"""{row[1]},"""
         self.pk = stp.rstrip(',')
+        self.pk_idx = stp_idx.rstrip(',')
 
     def set_order_by(self):
         """
@@ -235,16 +238,15 @@ class Table(TableRdbms):
         ordinal_position"""
         field = ""
         conn = self.connect()
-        with conn:
-            with conn.cursor() as curs:
-                curs.execute(sql)
-                rows = curs.fetchall()
-                stp = ""
-                for row in rows:
-                    field = row[0]
-                    field_type = self.get_field_datatype(tableName,field)
-                    if "char" in field_type:
-                        field = field + " collate \"POSIX\" "
+        with conn.cursor() as curs:
+            curs.execute(sql)
+            rows = curs.fetchall()
+            stp = ""
+            for row in rows:
+                field = row[0]
+                field_type = self.get_field_datatype(tableName,field)
+                if "char" in field_type:
+                    field = field + " collate \"POSIX\" "
                 stp = stp + f"""{field},"""
         self.order_by = stp.rstrip(',')
 
