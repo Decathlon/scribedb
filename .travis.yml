@@ -6,7 +6,7 @@ script:
     - docker-compose up -d
 env:
     - DOCKER_COMPOSE_VERSION=1.25.4
-before_install:
+before_deploy:
     - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
     - export COMMIT=${TRAVIS_COMMIT::7}
     - docker build -t ossdecathlon/scribedb:$COMMIT .
