@@ -2,9 +2,7 @@ sudo: required
 language: python
 services:
     - docker
-install: 
-    - pip install -r requirements.txt
-    - docker-compose build 
+script: 
     - docker-compose up -d
 env:
     - DOCKER_COMPOSE_VERSION=1.25.4
