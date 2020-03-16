@@ -16,7 +16,8 @@ before_deploy:
     - sudo mv docker-compose /usr/local/bin
 deploy:
     provider: script
-    script: bash scripts/deploy.sh
+    script: scripts/deploy.sh
     on:
-        tags: on
+        repo: Decathlon/scribedb
+        tags: true
         all_branches: true
