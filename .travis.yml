@@ -4,7 +4,7 @@ services:
     - docker
 install: pip install -r requirements.txt
 before_deploy:
-    - docker build -t decathlon/scribedb:$TRAVIS_TAG .
+    - docker build -t ossdecathlon/scribedb:$TRAVIS_TAG .
 deploy:
     provider: script
     script: bash scripts/docker_push.sh
