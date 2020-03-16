@@ -3,9 +3,9 @@ language: python
 services:
     - docker
 install: 
-    - pip install --upgrade pip
     - pip install -r requirements.txt
-before_deploy:
+script: python -m "import os"
+before_install:
     - docker-compose up -d
     - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
     - export COMMIT=${TRAVIS_COMMIT::7}
