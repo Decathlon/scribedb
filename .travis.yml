@@ -2,13 +2,16 @@ sudo: required
 language: python
 services:
     - docker
-install: pip install -r requirements.txt
+install: 
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
 before_deploy:
+    - docker-compose up -d
     - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
     - export COMMIT=${TRAVIS_COMMIT::7}
     - docker build -t ossdecathlon/scribedb:$COMMIT .
 deploy:
     provider: script
-    script: bash scripts/docker_push.sh
+    script: bash scripts/deploy.sh
     on:
         tags: true
