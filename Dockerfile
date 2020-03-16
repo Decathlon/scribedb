@@ -17,6 +17,9 @@ RUN  curl -o /etc/yum.repos.d/public-yum-ol7.repo https://yum.oracle.com/public-
 ENV PATH=$PATH:/usr/lib/oracle/18.3/client64/bin
 ENV LD_LIBRARY_PATH=usr/lib/oracle/18.3/client64/lib
 
+COPY requirements.txt .
+RUN pip3.6 install --no-cache-dir -r requirements.txt
+
 COPY scribedb/*.py /
 
 CMD ["python3.6","./scribedb.py"]
