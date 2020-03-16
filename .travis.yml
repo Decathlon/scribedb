@@ -6,7 +6,6 @@ install:
     - pip install -r requirements.txt
 script: python -m "import os"
 before_install:
-    - docker-compose up -d
     - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
     - export COMMIT=${TRAVIS_COMMIT::7}
     - docker build -t ossdecathlon/scribedb:$COMMIT .
