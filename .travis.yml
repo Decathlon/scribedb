@@ -4,6 +4,7 @@ services:
     - docker
 env:
     - DOCKER_COMPOSE_VERSION=1.25.4
+    - TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
 install: pip install -r requirements.txt
 before_script:
     - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
@@ -15,9 +16,12 @@ before_script:
     - sudo mv docker-compose /usr/local/bin
 script:
     - docker-compose build
+before_deploy:
+    - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 deploy:
     provider: script
-    script: scripts/deploy.sh
+    script: docker push ossdecathlon/scribedb:$TAG
     on:
         tags: true
         all_branches: true
