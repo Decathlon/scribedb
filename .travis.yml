@@ -4,7 +4,6 @@ services:
     - docker
 env:
     - DOCKER_COMPOSE_VERSION=1.25.4
-install: pip install -r requirements.txt
 before_script:
     - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
     - export COMMIT=${TRAVIS_COMMIT::7}
@@ -22,5 +21,4 @@ deploy:
     provider: script
     script: docker push ossdecathlon/scribedb:$TAG
     on:
-        tags: true
-        all_branches: true
+        branch: development
