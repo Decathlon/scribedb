@@ -13,7 +13,7 @@ before_script:
     - chmod +x docker-compose
     - sudo mv docker-compose /usr/local/bin
 script:
-    - docker-compose --build
+    - docker-compose build
 deploy:
     provider: script
     script: scripts/deploy.sh
