@@ -21,4 +21,8 @@ deploy:
     provider: script
     script: docker push ossdecathlon/scribedb:$TAG
     on:
-        branch: development
+        branches: 
+        only:
+            - development
+            - master
+            
