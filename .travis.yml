@@ -1,5 +1,9 @@
 sudo: required
 language: python
+branches:
+    only:
+        - master
+        - development
 services:
     - docker
 env:
@@ -20,6 +24,3 @@ before_deploy:
 deploy:
     provider: script
     script: docker push ossdecathlon/scribedb:$TAG
-    on:
-        branch:
-            development
