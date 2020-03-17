@@ -18,6 +18,6 @@ deploy:
     provider: script
     script: scripts/deploy.sh
     on:
-        branch: master
+        branch: development
         tags: true
         all_branches: true
