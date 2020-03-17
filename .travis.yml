@@ -5,6 +5,8 @@ services:
 env:
     - DOCKER_COMPOSE_VERSION=1.25.4
 before_script:
+    - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
+    - export COMMIT=${TRAVIS_COMMIT::7}
     - docker build -t ossdecathlon/scribedb:$TAG .
     - sudo rm /usr/local/bin/docker-compose
     - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
