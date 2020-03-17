@@ -239,6 +239,41 @@ class Table(TableRdbms):
         schema = self.schema
         tableName = self.tableName
         logging.debug(f"""__set_pk from {schema}.{tableName}""")
+        sql = f"""SELECT cols.column_name,tc.column_id FROM
+        all_constraints cons,
+        all_cons_columns cols,
+        all_tab_columns tc
+        WHERE cols.table_name = upper('{tableName}') AND
+        cols.owner= upper('{schema}') and
+        cons.constraint_type = 'P' AND
+        cons.constraint_name = cols.constraint_name AND
+        cons.owner =  cols.owner and
+        tc.owner=cols.owner and
+        tc.table_name=cols.table_name and
+        tc.column_name=cols.column_name
+        ORDER BY cols.table_name, cols.position"""
+        conn = self.connect()
+        with conn:
+            with conn.cursor() as curs:
+                curs.execute(sql)
+                rows = curs.fetchall()
+                stp = ""
+                stp_idx = ""
+                for row in rows:
+                    stp = stp + f"""{row[0]},"""
+                    stp_idx = stp_idx + f"""{row[1]},"""
+        self.pk = stp.rstrip(',')
+        self.pk_idx = stp_idx.rstrip(',')
+
+    def set_order_by(self):
+        """
+        set the primary key fields of the table
+        used in dynamic query building for the order by clause
+        example : will create a string  "EMPLOYEE_ID"
+        """
+        schema = self.schema
+        tableName = self.tableName
+        logging.debug(f"""__set_pk from {schema}.{tableName}""")
         sql = f"""SELECT cols.column_name FROM all_constraints cons, all_cons_columns cols WHERE cols.table_name = upper('{tableName}') AND  cols.owner= upper('{schema}') and cons.constraint_type = 'P' AND cons.constraint_name = cols.constraint_name AND cons.owner =  cols.owner ORDER BY cols.table_name, cols.position"""
         conn = self.connect()
         with conn:
@@ -248,7 +283,7 @@ class Table(TableRdbms):
                 stp = ""
                 for row in rows:
                     stp = stp + f"""{row[0]},"""
-        self.pk = stp.rstrip(',')
+        self.order_by = stp.rstrip(',')
 
     def format_qry_last(self, start, stop):
         """
@@ -278,9 +313,9 @@ class Table(TableRdbms):
           hash_md5(concat) as md5_concat from
           (select {self.fields},
           {self.concatened_fields} as concat,
-          row_number() over (order by {self.fields}) numrow
+          row_number() over (order by {self.order_by}) numrow
           from {self.schema}.{self.viewName}
-          order by {self.fields}) q1
+          order by {self.order_by}) q1
           {stlimit}
           """
         #  logging.debug(f"""format_qry_last {start} {stop}:{sql}""")
@@ -303,6 +338,6 @@ class Table(TableRdbms):
         1 as nb from (select {self.concatened_fields} as concat,
         row_number() over (order by 1) numrow
         from {self.schema}.{self.viewName}
-        order by {self.fields}) q1 {stlimit}) r1"""
+        order by {self.order_by}) q1 {stlimit}) r1"""
     #    logging.debug(f"""{self.dbEngine}:format_qry : {sql}""")
         return sql
