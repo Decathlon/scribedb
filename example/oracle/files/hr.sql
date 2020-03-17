@@ -1,9 +1,3 @@
---------------------------------------------------------
---  File created - Wednesday-September-18-2019   
---------------------------------------------------------
--- USER SQL
-alter session set "_ORACLE_SCRIPT"=true;
-
 WHENEVER SQLERROR CONTINUE
 
 set feed off
@@ -38,17 +32,17 @@ GRANT UNLIMITED TABLESPACE TO "HR" ;
 --  DDL for Sequence DEPARTMENTS_SEQ
 --------------------------------------------------------
 
-   CREATE SEQUENCE  "HR"."DEPARTMENTS_SEQ"  MINVALUE 1 MAXVALUE 9990 INCREMENT BY 10 START WITH 280 NOCACHE  NOORDER  NOCYCLE  NOKEEP  NOSCALE  GLOBAL ;
+   CREATE SEQUENCE  "HR"."DEPARTMENTS_SEQ"  MINVALUE 1 MAXVALUE 9990 INCREMENT BY 10 START WITH 280  ;
 --------------------------------------------------------
 --  DDL for Sequence EMPLOYEES_SEQ
 --------------------------------------------------------
 
-   CREATE SEQUENCE  "HR"."EMPLOYEES_SEQ"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 207 NOCACHE  NOORDER  NOCYCLE  NOKEEP  NOSCALE  GLOBAL ;
+   CREATE SEQUENCE  "HR"."EMPLOYEES_SEQ"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 207  ;
 --------------------------------------------------------
 --  DDL for Sequence LOCATIONS_SEQ
 --------------------------------------------------------
 
-   CREATE SEQUENCE  "HR"."LOCATIONS_SEQ"  MINVALUE 1 MAXVALUE 9900 INCREMENT BY 100 START WITH 3300 NOCACHE  NOORDER  NOCYCLE  NOKEEP  NOSCALE  GLOBAL ;
+   CREATE SEQUENCE  "HR"."LOCATIONS_SEQ"  MINVALUE 1 MAXVALUE 9900 INCREMENT BY 100 START WITH 3300  ;
 --------------------------------------------------------
 --  DDL for Table COUNTRIES
 --------------------------------------------------------
@@ -667,7 +661,7 @@ REM INSERTING into HR.VIEW1
 --  DDL for Function HASH_MD5
 --------------------------------------------------------
   grant execute on dbms_crypto to hr;
-  CREATE OR REPLACE NONEDITIONABLE FUNCTION "HR"."HASH_MD5" (
+  CREATE OR REPLACE FUNCTION "HR"."HASH_MD5" (
         psINPUT IN clob
         ) RETURN VARCHAR2 AS
         rHash RAW (16);
