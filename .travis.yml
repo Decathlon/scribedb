@@ -4,7 +4,6 @@ services:
     - docker
 env:
     - DOCKER_COMPOSE_VERSION=1.25.4
-    - TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
 install: pip install -r requirements.txt
 before_script:
     - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
