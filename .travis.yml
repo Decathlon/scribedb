@@ -18,6 +18,6 @@ deploy:
     provider: script
     script: scripts/deploy.sh
     on:
-        repo: Decathlon/scribedb
+        branch: master
         tags: true
         all_branches: true
