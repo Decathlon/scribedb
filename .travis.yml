@@ -4,6 +4,7 @@ services:
     - docker
 env:
     - DOCKER_COMPOSE_VERSION=1.25.4
+install: pip install -r requirements.txt
 before_script:
     - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
     - export COMMIT=${TRAVIS_COMMIT::7}
@@ -12,6 +13,8 @@ before_script:
     - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
     - chmod +x docker-compose
     - sudo mv docker-compose /usr/local/bin
+script:
+    - docker-compose build
 deploy:
     provider: script
     script: scripts/deploy.sh
