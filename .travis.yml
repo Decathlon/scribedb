@@ -16,10 +16,9 @@ script:
     - docker-compose build
 before_deploy:
     - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
-    - export COMMIT=${TRAVIS_COMMIT::7}
     - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 deploy:
     provider: script
-    script: docker push ossdecathlon/scribedb:$COMMIT
+    script: docker push ossdecathlon/scribedb:$TAG
     on:
         branch: development
