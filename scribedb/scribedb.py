@@ -1245,6 +1245,7 @@ class Repo():
 
         if qry1 is None:
             err = 1
+
         """
         there is qry to execute
         """
@@ -1495,6 +1496,16 @@ def init(schema1, schema2):
                     logging.info(
                         f"""{table2.getengine()} type: {table2.getDataTypeFields()}""")
                     repo.updateTableDiff(table1,table2)
+
+                    if not(table1.is_computable()):
+                        logging.info(
+                            f"""{table1.getengine()} {tableName} is not computable""")
+                        step = 2
+
+                    if not(table2.is_computable()):
+                        logging.info(
+                            f"""{table2.getengine()} {tableName} is not computable""")
+                        step = 2
 
                     while step < 2:
                         step = step + 1

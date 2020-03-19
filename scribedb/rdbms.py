@@ -13,6 +13,7 @@ class Table():
         self.cxString = cxString
         self.schema = schema
         self.nbfields = 0
+        self.numrows = -1
         self.order_by = None
         self.pk = None
         self.pk_idx = None
@@ -63,11 +64,22 @@ class Table():
             self.order_by = colt
             self.set_pk()
 
-        self.create_view(schema,self.viewName,select)
+        if self.is_computable():
+            self.create_view(schema,self.viewName,select)
         self.set_fields(self.viewName)
         self.nbfields = len(self.fields.split(','))
         self.set_numrows(self.viewName)
         self.select = select
+
+    def is_computable(self):
+        """
+        a table is computable only if it has :
+        primary key
+        """
+        if self.pk != '' and self.numrows != 0:
+            return True
+        else:
+            return False
 
     def drop_view(self):
         """
