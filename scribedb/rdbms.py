@@ -17,6 +17,7 @@ class Table():
         self.order_by = None
         self.pk = None
         self.pk_idx = None
+        self.obs = ''
 
     def cleanObjects(self, val):
         val = val.strip('.')
@@ -37,46 +38,58 @@ class Table():
     def getDataTypeFields(self):
         return self.datatype_list
 
-    def create(self, tableName, schema, select):
+    def create(self, tableName, schema, select,calNumrows=True):
         if len(tableName) + len(self.viewNamePrefix) >= 30:
             lentbl = len(tableName) - len(self.viewNamePrefix)
         else:
             lentbl = len(tableName)
+        self.obs = ''
         self.viewName = self.viewNamePrefix + tableName[0:lentbl]
         self.tableName = tableName
         self.schema = schema
         self.drop_view()
-        if select is None:
-            self.set_fields(tableName)
-            self.set_pk()
-            self.set_order_by()
-            select = f"""select {self.fields} from {schema}.{tableName}
-            order by {self.order_by}"""
-        else:
-            self.order_by = select.split('order by')[1]
-            tmp_order = self.order_by.split(',')
-            colt = ''
-            for result_order in tmp_order:
-                #col = self.sanitize_name(result_order)
-                col = result_order
-                colt = colt + col + ','
-            colt = colt.rstrip(',')
-            self.order_by = colt
-            self.set_pk()
+        self.set_pk()
 
         if self.is_computable():
-            self.create_view(schema,self.viewName,select)
-        self.set_fields(self.viewName)
-        self.nbfields = len(self.fields.split(','))
-        self.set_numrows(self.viewName)
-        self.select = select
+            if select is None:
+                self.set_fields(tableName)
+                self.set_order_by()
+                select = f"""select {self.fields} from {schema}.{tableName}
+                order by {self.order_by}"""
+                self.create_view(schema,self.viewName,select)
+            else:
+                self.order_by = select.split('order by')[1]
+                tmp_order = self.order_by.split(',')
+                colt = ''
+                for result_order in tmp_order:
+                    #col = self.sanitize_name(result_order)
+                    col = result_order
+                    colt = colt + col + ','
+                colt = colt.rstrip(',')
+                self.order_by = colt
+                self.create_view(schema,self.viewName,select)
+                self.set_fields(self.viewName)
+
+            if calNumrows:
+                self.set_numrows(self.viewName)
+            if self.numrows == 0:
+                self.obs = 'NoRows'
+        #
+            self.nbfields = len(self.fields.split(','))
+            self.select = select
+        else:
+            self.select = ''
+            self.obs = 'NoPk'
+            self.order_by = ''
+            self.fields = ''
+            self.nbfields = 0
 
     def is_computable(self):
         """
         a table is computable only if it has :
         primary key
         """
-        if self.pk != '' and self.numrows != 0:
+        if self.pk != '':
             return True
         else:
             return False

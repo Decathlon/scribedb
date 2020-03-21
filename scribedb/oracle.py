@@ -216,16 +216,15 @@ class Table(TableRdbms):
         upper('{object_name}'))) ORDER BY column_id"""
 
         conn = self.connect()
-        with conn:
-            with conn.cursor() as curs:
-                curs.execute(sql)
-                rows = curs.fetchall()
-                for row in rows:
-                    server_field = server_field + ',' + row[1]
-                    datatype = self.get_field_datatype(object_name,row[0])
-                    field = f"""nvl({row[0]},'')"""
-                    fieldst = fieldst + self.cast_field(field,datatype)
-                    datatype_st = datatype_st + datatype + '||'
+        with conn.cursor() as curs:
+            curs.execute(sql)
+            rows = curs.fetchall()
+            for row in rows:
+                server_field = server_field + ',' + row[1]
+                datatype = self.get_field_datatype(object_name,row[0])
+                field = f"""nvl({row[0]},'')"""
+                fieldst = fieldst + self.cast_field(field,datatype)
+                datatype_st = datatype_st + datatype + '||'
         self.concatened_fields = fieldst.rstrip('||')
         self.datatype_list = datatype_st.rstrip('||')
         self.fields = server_field.lstrip(',')
@@ -332,12 +331,15 @@ class Table(TableRdbms):
           [string] -- template query
         """
         stlimit = "where numrow between {start} and {stop}"
-        sql = f"""select
-        hash_md5(xmlagg(XMLELEMENT(e,md5_concat,'').EXTRACT('//text()')).GetClobVal()) as md5_concat,
-        sum(nb) as numrow from (select hash_md5(concat) as md5_concat,
-        1 as nb from (select {self.concatened_fields} as concat,
-        row_number() over (order by 1) numrow
-        from {self.schema}.{self.viewName}
-        order by {self.order_by}) q1 {stlimit}) r1"""
-    #    logging.debug(f"""{self.dbEngine}:format_qry : {sql}""")
+        if self.fields != '':
+            sql = f"""select
+            hash_md5(xmlagg(XMLELEMENT(e,md5_concat,'').EXTRACT('//text()')).GetClobVal()) as md5_concat,
+            sum(nb) as numrow from (select hash_md5(concat) as md5_concat,
+            1 as nb from (select {self.concatened_fields} as concat,
+            row_number() over (order by 1) numrow
+            from {self.schema}.{self.viewName}
+            order by {self.order_by}) q1 {stlimit}) r1"""
+        #    logging.debug(f"""{self.dbEngine}:format_qry : {sql}""")
+        else:
+            sql = ''
         return sql

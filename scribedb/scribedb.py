@@ -373,13 +373,12 @@ class Repo():
               ALTER TABLE {self.schemaRepo}.rowdiff ALTER id SET DEFAULT nextval('
               {self.schemaRepo}.rowdiff_id_seq'::regclass);"""
         connRepo = self.connect(self.cxRepo)
-        with connRepo:
-            with connRepo.cursor() as curs:
-                try:
-                    curs.execute(sql)
-                except connRepo.DatabaseError as exc:
-                    error, = exc.args
-                    logging.error(f"""error executing {sql} : {error}""")
+        with connRepo.cursor() as curs:
+            try:
+                curs.execute(sql)
+            except connRepo.DatabaseError as exc:
+                error, = exc.args
+                logging.error(f"""error executing {sql} : {error}""")
 
     def razcompare(self):
         """
@@ -387,18 +386,17 @@ class Repo():
         """
         connRepo = self.connect(self.cxRepo)
         sql = "delete from {self.schemaRepo}.tablediff where step>0"
-        with connRepo:
-            with connRepo.cursor() as curs:
-                curs.execute(sql)
+        with connRepo.cursor() as curs:
+            curs.execute(sql)
         sql = f"""udpate {self.schemaRepo}.tablediff set server1_status =
         'ready',server2_status = 'ready',result = 'unkonwn'"""
-        with connRepo:
-            with connRepo.cursor() as curs:
-                try:
-                    curs.execute(sql)
-                except connRepo.DatabaseError as exc:
-                    error, = exc.args
-                    logging.error(f"""error executing {sql} : {error}""")
+        with connRepo.cursor() as curs:
+            try:
+                curs.execute(sql)
+            except connRepo.DatabaseError as exc:
+                error, = exc.args
+                logging.error(f"""error executing {sql} : {error}""")
+        connRepo.commit()
 
     def drop_schema(self):
         """
@@ -495,13 +493,13 @@ class Repo():
         set server{numserver}_status = '{status}'
         where id = {id}"""
         conn = self.connect(self.cxRepo)
-        with conn:
-            with conn.cursor() as curs:
-                try:
-                    curs.execute(sql)
-                except conn.DatabaseError as exc:
-                    error, = exc.args
-                    logging.error(f"""error executing {sql} : {error}""")
+        with conn.cursor() as curs:
+            try:
+                curs.execute(sql)
+            except conn.DatabaseError as exc:
+                error, = exc.args
+                logging.error(f"""error executing {sql} : {error}""")
+        conn.commit()
 
     def set_result(self, id, result):
         """
@@ -514,13 +512,13 @@ class Repo():
         sql = f"""update {self.schemaRepo}.tablediff
         set result = '{result}' where id = {id}"""
         conn = self.connect(self.cxRepo)
-        with conn:
-            with conn.cursor() as curs:
-                try:
-                    curs.execute(sql)
-                except conn.DatabaseError as exc:
-                    error, = exc.args
-                    logging.error(f"""error executing {sql} : {error}""")
+        with conn.cursor() as curs:
+            try:
+                curs.execute(sql)
+            except conn.DatabaseError as exc:
+                error, = exc.args
+                logging.error(f"""error executing {sql} : {error}""")
+        conn.commit()
 
     def set_comments(self, id, comments):
         """
@@ -533,13 +531,13 @@ class Repo():
         sql = f"""update {self.schemaRepo}.tablediff
         set comments = '{comments}' where id = {id}"""
         conn = self.connect(self.cxRepo)
-        with conn:
-            with conn.cursor() as curs:
-                try:
-                    curs.execute(sql)
-                except conn.DatabaseError as exc:
-                    error, = exc.args
-                    logging.error(f"""error executing {sql} : {error}""")
+        with conn.cursor() as curs:
+            try:
+                curs.execute(sql)
+            except conn.DatabaseError as exc:
+                error, = exc.args
+                logging.error(f"""error executing {sql} : {error}""")
+        conn.commit()
 
     def set_hash(self, id, ret, numserver):
         """
@@ -566,13 +564,13 @@ class Repo():
         server{numserver}_rows = {rows}
         where id = {id}"""
         conn = self.connect(self.cxRepo)
-        with conn:
-            with conn.cursor() as curs:
-                try:
-                    curs.execute(sql)
-                except conn.DatabaseError as exc:
-                    error, = exc.args
-                    logging.error(f"""error executing {sql} : {error}""")
+        with conn.cursor() as curs:
+            try:
+                curs.execute(sql)
+            except conn.DatabaseError as exc:
+                error, = exc.args
+                logging.error(f"""error executing {sql} : {error}""")
+        conn.commit()
 
     def insert_table_diff(self, table1, table2):
         """
@@ -600,24 +598,25 @@ class Repo():
               server1_rows,
               server2_rows,
               result,
-              step)
+              step,
+              comments)
               SELECT '{table1.cxString}','{table1.schema}','{table2.cxString}',
               '{table2.schema}','{table1.tableName}','{table1.select}',
               '{table2.select}','{qry1}','{qry2}',{table1.numrows},
-              {table2.numrows},'init',0 WHERE NOT EXISTS
+              {table2.numrows},'init',0 ,'{table1.obs}' WHERE NOT EXISTS
               (SELECT 1 FROM {self.schemaRepo}.tablediff WHERE
               (cxstring1,schema1,lower(table_name),cxstring2,schema2,step)
               = ('{table1.cxString}', '{table1.schema}',
               lower('{table1.tableName}') ,'{table2.cxString}',
               '{table2.schema}',0))"""
         conn = self.connect(self.cxRepo)
-        with conn:
-            with conn.cursor() as curs:
-                try:
-                    curs.execute(sql)
-                except conn.DatabaseError as exc:
-                    error, = exc.args
-                    logging.error(f"""error executing {sql} : {error}""")
+        with conn.cursor() as curs:
+            try:
+                curs.execute(sql)
+            except conn.DatabaseError as exc:
+                error, = exc.args
+                logging.error(f"""error executing {sql} : {error}""")
+        conn.commit()
 
     def updateTableDiff(self, table1,table2):
         """
@@ -642,13 +641,13 @@ class Repo():
               WHERE (lower(table_name),step)
               =(lower('{table1.tableName}'),0)"""
         conn = self.connect(self.cxRepo)
-        with conn:
-            with conn.cursor() as curs:
-                try:
-                    curs.execute(sql)
-                except conn.DatabaseError as exc:
-                    error, = exc.args
-                    logging.error(f"""error executing {sql} : {error}""")
+        with conn.cursor() as curs:
+            try:
+                curs.execute(sql)
+            except conn.DatabaseError as exc:
+                error, = exc.args
+                logging.error(f"""error executing {sql} : {error}""")
+        conn.commit()
 
     def reset_status(self):
         """
@@ -664,15 +663,15 @@ class Repo():
         conn = self.connect(cxRepo)
         sql = f"""update {self.schemaRepo}.tablediff set server1_status = null,
         server2_status = null where server1_status = 'running'"""
-        with conn:
-            with conn.cursor() as curs:
-                try:
-                    curs.execute(sql)
-                except conn.DatabaseError as exc:
-                    error, = exc.args
-                    logging.error(f"""error executing {sql} : {error}""")
+        with conn.cursor() as curs:
+            try:
+                curs.execute(sql)
+            except conn.DatabaseError as exc:
+                error, = exc.args
+                logging.error(f"""error executing {sql} : {error}""")
+        conn.commit()
 
-    def update_table_result(self, tablename):
+    def update_table_result(self, table):
         """
 
         update global result for step 0.
@@ -691,66 +690,87 @@ class Repo():
         """ qry1 : table has been processed : everything is ok, there are no step > 0
         """
         sql = f"""update {self.schemaRepo}.tablediff set result = 'ok',
-        server1_status = 'done',server2_status = 'done' where step = 0
-        and lower(table_name) = lower('{tablename}')
+        server1_status = 'done',server2_status = 'done' , comments = '{table.obs}'
+        where step = 0
+        and lower(table_name) = lower('{table.tableName}')
         and server1_rows = server2_rows and server1_rows>0
         and not exists (select 1 from {self.schemaRepo}.tablediff
         where step>0 and server1_status = 'done'
         and server2_status = 'done' and result = 'nok'
-        and lower(table_name) =lower('{tablename}'))"""
-        with conn:
-            with conn.cursor() as curs:
-                try:
-                    curs.execute(sql)
-                except conn.DatabaseError as exc:
-                    error, = exc.args
-                    logging.error(f"""error executing {sql} : {error.code}""")
+        and lower(table_name) =lower('{table.tableName}'))"""
+        with conn.cursor() as curs:
+            try:
+                curs.execute(sql)
+            except conn.DatabaseError as exc:
+                error, = exc.args
+                logging.error(f"""error executing {sql} : {error.code}""")
 
         """ qry2 : table has been processed : one step > 0 is not ok so the
         global result is nok
         """
         sql = f"""update {schemaRepo}.tablediff set result = 'nok',
-        server1_status = 'done',server2_status = 'done' where step = 0
-        and lower(table_name) = lower('{tablename}')
+        server1_status = 'done',server2_status = 'done', comments = '{table.obs}' 
+        where step = 0
+        and lower(table_name) = lower('{table.tableName}')
         and exists (select 1 from {schemaRepo}.tablediff where step>0
         and server1_status = 'done'
         and server2_status = 'done' and result = 'nok'
-        and lower(table_name) =lower('{tablename}'))"""
-        with conn:
-            with conn.cursor() as curs:
+        and lower(table_name) =lower('{table.tableName}'))"""
+        with conn.cursor() as curs:
+            try:
                 curs.execute(sql)
+            except conn.DatabaseError as exc:
+                error, = exc.args
+                logging.error(f"""error executing {sql} : {error.code}""")
 
         """ qry3 : table has been processed : server1_rows and server2_rows
         are <> so the global result is nok
         """
         sql = f"""update {schemaRepo}.tablediff set result = 'nok',
-        server1_status = 'done',server2_status = 'done'
-        where step = 0 and lower(table_name) = lower('{tablename}')
+        server1_status = 'done',server2_status = 'done', comments = '{table.obs}'
+        where step = 0 and lower(table_name) = lower('{table.tableName}')
         and server1_rows<>server2_rows and server1_status = 'ready'
         and server2_status = 'ready'"""
-        with conn:
-            with conn.cursor() as curs:
-                try:
-                    curs.execute(sql)
-                except conn.DatabaseError as exc:
-                    error, = exc.args
-                    logging.error(f"""error executing {sql} : {error}""")
+        with conn.cursor() as curs:
+            try:
+                curs.execute(sql)
+            except conn.DatabaseError as exc:
+                error, = exc.args
+                logging.error(f"""error executing {sql} : {error}""")
 
         """ qry4 : table has been processed : server1_rows = server2_rows = 0
         (because fo filter) so the global result is ok
         """
         sql = f"""update {schemaRepo}.tablediff set result = 'ok',
-        server1_status = 'done',server2_status = 'done' where step = 0
-        and lower(table_name) = lower('{tablename}')
+        server1_status = 'done',server2_status = 'done' , comments = '{table.obs}' 
+        where step = 0
+        and lower(table_name) = lower('{table.tableName}')
         and server1_rows = server2_rows and server1_rows = 0
         and server1_status = 'ready' and server2_status = 'ready'"""
-        with conn:
-            with conn.cursor() as curs:
-                try:
-                    curs.execute(sql)
-                except conn.DatabaseError as exc:
-                    error, = exc.args
-                    logging.error(f"""error executing {sql} : {error}""")
+        with conn.cursor() as curs:
+            try:
+                curs.execute(sql)
+            except conn.DatabaseError as exc:
+                error, = exc.args
+                logging.error(f"""error executing {sql} : {error}""")
+
+        """ qry5 : table has been processed : server1_rows = server2_rows = -1
+        (because of norows or no pk) so the global result is nok
+        """
+        sql = f"""update {schemaRepo}.tablediff set result = 'nok',
+        server1_status = 'done',server2_status = 'done', comments = '{table.obs}'
+        where step = 0
+        and lower(table_name) = lower('{table.tableName}')
+        and server1_rows = server2_rows and server1_rows = -1
+        and server1_status = 'ready' and server2_status = 'ready'"""
+        with conn.cursor() as curs:
+            try:
+                curs.execute(sql)
+            except conn.DatabaseError as exc:
+                error, = exc.args
+                logging.error(f"""error executing {sql} : {error}""")
+
+        conn.commit()
 
     def get_tables(self):
         """
@@ -765,14 +785,13 @@ class Repo():
         sql = f"""select table_name,server1_select,server2_select,schema1,
         schema2,tips from {self.schemaRepo}.tablediff
         where step = 0 and result = 'init' order by id"""
-        with conn:
-            with conn.cursor() as curs:
-                try:
-                    curs.execute(sql)
-                except conn.DatabaseError as exc:
-                    error, = exc.args
-                    logging.error(f"""error executing {sql} : {error}""")
-                rows = curs.fetchall()
+        with conn.cursor() as curs:
+            try:
+                curs.execute(sql)
+            except conn.DatabaseError as exc:
+                error, = exc.args
+                logging.error(f"""error executing {sql} : {error}""")
+            rows = curs.fetchall()
         return rows
 
     def exists(self, cxRepo, schemaRepo, schema, tablename):
@@ -787,14 +806,13 @@ class Repo():
         conn = self.connect(cxRepo)
         sql = f"""select * from {schemaRepo}.tablediff where lower(table_name)
         = lower('{tablename}') and lower(schema1) = lower('{schema}')"""
-        with conn:
-            with conn.cursor() as curs:
-                try:
-                    curs.execute(sql)
-                except conn.DatabaseError as exc:
-                    error, = exc.args
-                    logging.error(f"""error executing {sql} : {error}""")
-                row = curs.fetchone()
+        with conn.cursor() as curs:
+            try:
+                curs.execute(sql)
+            except conn.DatabaseError as exc:
+                error, = exc.args
+                logging.error(f"""error executing {sql} : {error}""")
+            row = curs.fetchone()
 
         if row is None:
             return 0
@@ -815,10 +833,9 @@ class Repo():
         (table_name) = lower('{tablename}') and schema1 = '{schema}' and
         server1_status = 'ready' and server1_status  = 'ready' and result in
         ('ready', 'init')"""
-        with conn:
-            with conn.cursor() as curs:
-                curs.execute(sql)
-                row = curs.fetchone()
+        with conn.cursor() as curs:
+            curs.execute(sql)
+            row = curs.fetchone()
         if row is None:
             return 1
         else:
@@ -1101,6 +1118,7 @@ class Repo():
                             error, = exc.args
                             logging.error(f"""error executing {sql}:
                             {error.code}""")
+                    conn.commit()
             return errloc
 
         """
@@ -1127,88 +1145,87 @@ class Repo():
         nberr = 1
         logging.debug(f"""qry compute_diffrowset : {sql}""")
         conn = self.connect(self.cxRepo)
-        with conn:
-            with conn.cursor() as curs:
-                curs.execute(sql)
-                rows = curs.fetchall()
-                if rows is not None:
-                    for row in rows:
-                        if self.total_nbdiff != 0:
-                            break
-                        id = row[0]
-                        start = row[1]
-                        stop = row[2]
-                        logging.debug(
-                            f"""search diff in {table1.tableName} range : {start} -> {stop} retreiving dataset from server1 & 2...""")
-                        qry1 = table1.format_qry_last(start,stop)
-                        qry2 = table2.format_qry_last(start,stop)
+        with conn.cursor() as curs:
+            curs.execute(sql)
+            rows = curs.fetchall()
+            if rows is not None:
+                for row in rows:
+                    if self.total_nbdiff != 0:
+                        break
+                    id = row[0]
+                    start = row[1]
+                    stop = row[2]
+                    logging.debug(
+                        f"""search diff in {table1.tableName} range : {start} -> {stop} retreiving dataset from server1 & 2...""")
+                    qry1 = table1.format_qry_last(start,stop)
+                    qry2 = table2.format_qry_last(start,stop)
 
-                        qry_thread_1 = ExecQry(
-                            table1.getengine() + '_dtsFetch',table1,qry1)
-                        qry_thread_2 = ExecQry(
-                            table2.getengine() + '_dtsFetch',table2,qry2)
+                    qry_thread_1 = ExecQry(
+                        table1.getengine() + '_dtsFetch',table1,qry1)
+                    qry_thread_2 = ExecQry(
+                        table2.getengine() + '_dtsFetch',table2,qry2)
 
-                        self.set_status(id,'running',1)
-                        self.set_status(id,'running',2)
+                    self.set_status(id,'running',1)
+                    self.set_status(id,'running',2)
 
-                        qry_thread_1.start()
-                        qry_thread_2.start()
+                    qry_thread_1.start()
+                    qry_thread_2.start()
 
-                        try:
-                            """
-                            wait for the qry being executed
-                            """
-                            rows1 = qry_thread_1.join()
-                        except Exception as exc:
-                            error, = exc.args
-                            logging.error(f"""error executing thread:
-                            {error.code}""")
-                        try:
-                            """
-                            wait for the qry being executed
-                            """
-                            rows2 = qry_thread_2.join()
-                        except Exception as exc:
-                            error, = exc.args
-                            logging.error(f"""error executing thread:
-                            {error.code}""")
-
-                        """"
-                        2 datasets are ready to be compared
+                    try:
                         """
-                        if rows1 is not None:
-                            rowsets1 = set(rows1)
-                            if rows2 is not None:
-                                rowsets2 = set(rows2)
-                                result_a_b = rowsets1 - rowsets2
-                                result_b_a = rowsets2 - rowsets1
-                                nberr = 0
-                                nberr2 = 0
-                                nberr1 = 0
-                                if len(result_a_b) > 0:
-                                    """
-                                    there are some <> inside
-                                    """
-                                    logging.info(
-                                        f"""find {len(result_a_b)} in {table1.getengine()}/{len(rowsets1)}""")
-                                    nberr1 = format_result(result_a_b)
-                                if nberr1 < int(maxdiff) and len(result_b_a) > 0:
-                                    """
-                                    there are some <> inside
-                                    """
-                                    logging.info(
-                                        f"""find {len(result_b_a)} in {table2.getengine()}/{len(rowsets2)}""")
-                                    nberr2 = format_result(result_b_a)
-                                nberr = nberr1 + nberr2
-                                if nberr == 0:
-                                    self.set_result(id,'ok')
-                                else:
-                                    self.set_result(id,'nok')
-                        else:
-                            self.set_result(id,'nok')
+                        wait for the qry being executed
+                        """
+                        rows1 = qry_thread_1.join()
+                    except Exception as exc:
+                        error, = exc.args
+                        logging.error(f"""error executing thread:
+                        {error.code}""")
+                    try:
+                        """
+                        wait for the qry being executed
+                        """
+                        rows2 = qry_thread_2.join()
+                    except Exception as exc:
+                        error, = exc.args
+                        logging.error(f"""error executing thread:
+                        {error.code}""")
 
-                        self.set_status(id,'done',1)
-                        self.set_status(id,'done',2)
+                    """"
+                    2 datasets are ready to be compared
+                    """
+                    if rows1 is not None:
+                        rowsets1 = set(rows1)
+                        if rows2 is not None:
+                            rowsets2 = set(rows2)
+                            result_a_b = rowsets1 - rowsets2
+                            result_b_a = rowsets2 - rowsets1
+                            nberr = 0
+                            nberr2 = 0
+                            nberr1 = 0
+                            if len(result_a_b) > 0:
+                                """
+                                there are some <> inside
+                                """
+                                logging.info(
+                                    f"""find {len(result_a_b)} in {table1.getengine()}/{len(rowsets1)}""")
+                                nberr1 = format_result(result_a_b)
+                            if nberr1 < int(maxdiff) and len(result_b_a) > 0:
+                                """
+                                there are some <> inside
+                                """
+                                logging.info(
+                                    f"""find {len(result_b_a)} in {table2.getengine()}/{len(rowsets2)}""")
+                                nberr2 = format_result(result_b_a)
+                            nberr = nberr1 + nberr2
+                            if nberr == 0:
+                                self.set_result(id,'ok')
+                            else:
+                                self.set_result(id,'nok')
+                    else:
+                        self.set_result(id,'nok')
+
+                    self.set_status(id,'done',1)
+                    self.set_status(id,'done',2)
         return nberr
 
     def compute_md5(self, table1, table2):
@@ -1448,8 +1465,8 @@ def init(schema1, schema2):
         tablename = table[0]
         if repo.exists(cxRepo,schemaRepo,schema1,tablename) == 0:
             logging.info(f"""initializing table {tablename}""")
-            table1.create(tablename,schema1,None)
-            table2.create(tablename,schema2,None)
+            table1.create(tablename,schema1,None,False)
+            table2.create(tablename,schema2,None,False)
             repo.insert_table_diff(table1,table2)
             phase = 'init'
             msg = f"""all tables have been initiliazed you can see them with
@@ -1479,16 +1496,41 @@ def init(schema1, schema2):
                     step = 0
                     logging.info(
                         f"""processing table {tableName} (counting rows on 2 dbs, creating objects...)""")
+
                     table1.create(tableName,schema1,server1_select)
+                    if table1.pk == '':
+                        logging.info(
+                            f"""{table1.getengine()} {tableName} has no pk""")
+                        repo.update_table_result(table1)
+                        continue
+                    if table1.numrows == 0:
+                        logging.info(
+                            f"""{table1.getengine()} {tableName} is empty""")
+                        repo.update_table_result(table1)
+                        continue
                     logging.info(
                         f"""{table1.getengine()} {tableName} numrows: {table1.numrows} / nbFields: {table1.getNbFields()}""")
+
                     table2.create(tableName,schema2,server2_select)
+                    if table2.get_pk() is None:
+                        logging.info(
+                            f"""{table1.getengine()} {tableName} has no pk""")
+                        repo.update_table_result(table2)
+                        continue
+                    if table2.numrows == 0:
+                        logging.info(
+                            f"""{table2.getengine()} {tableName} is empty""")
+                        repo.update_table_result(table2)
+                        continue
                     logging.info(
                         f"""{table2.getengine()} {tableName} numrows: {table2.numrows} / nbFields: {table2.getNbFields()}""")
+
                     if table2.getNbFields() != table1.getNbFields():
-                        logging.error(
-                            "number of fields are differents, can not compare such datasets .")
-                        scribedb_return = 2
+                        logging.info(
+                            f"""number of fields are differents, can not compare such datasets""")
+                        repo.update_table_result(table1)
+                        continue
+
                     """ update server1_rows and server2_rows if there is where
                     clause"""
                     logging.info(
@@ -1496,16 +1538,6 @@ def init(schema1, schema2):
                     logging.info(
                         f"""{table2.getengine()} type: {table2.getDataTypeFields()}""")
                     repo.updateTableDiff(table1,table2)
-
-                    if not(table1.is_computable()):
-                        logging.info(
-                            f"""{table1.getengine()} {tableName} is not computable""")
-                        step = 2
-
-                    if not(table2.is_computable()):
-                        logging.info(
-                            f"""{table2.getengine()} {tableName} is not computable""")
-                        step = 2
 
                     while step < 2:
                         step = step + 1
@@ -1531,7 +1563,7 @@ def init(schema1, schema2):
                                 break
                 else:
                     logging.info(f"{tableName} already processed")
-                repo.update_table_result(tableName)
+                repo.update_table_result(table1)
                 logging.info(f"{tableName} processed")
                 table1.drop_view()
                 table2.drop_view()

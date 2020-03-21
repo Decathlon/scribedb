@@ -303,12 +303,15 @@ class Table(TableRdbms):
         """
 
         stlimit = "limit {limit} offset {offset}"
-        sql = f"""select md5(string_agg(r1.md5_concat,'')),sum(nb) as numrow
-        from (select md5(concat) as md5_concat,
-        1 as nb from
-        (select {self.concatened_fields} as concat
-        from {self.schema}.{self.viewName}
-        order by {self.order_by} {stlimit}) q1) r1"""
-        # logging.critical(
-        #    f"""{self.dbEngine}:format_qry : {sql}""")
+        if self.fields != '':
+            sql = f"""select md5(string_agg(r1.md5_concat,'')),sum(nb) as numrow
+            from (select md5(concat) as md5_concat,
+            1 as nb from
+            (select {self.concatened_fields} as concat
+            from {self.schema}.{self.viewName}
+            order by {self.order_by} {stlimit}) q1) r1"""
+            # logging.critical(
+            #    f"""{self.dbEngine}:format_qry : {sql}""")
+        else:
+            sql = ''
         return sql
