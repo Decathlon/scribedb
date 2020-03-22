@@ -379,6 +379,7 @@ class Repo():
             except connRepo.DatabaseError as exc:
                 error, = exc.args
                 logging.error(f"""error executing {sql} : {error}""")
+        connRepo.commit()
 
     def razcompare(self):
         """
@@ -407,6 +408,7 @@ class Repo():
         with connRepo:
             with connRepo.cursor() as curs:
                 curs.execute(sql)
+        connRepo.commit()
 
     def get_queries(self, table, numserver):
         """
@@ -983,7 +985,8 @@ class Repo():
             total_diff = len(result)
             for result_row in result:
                 i = i + 1
-                logging.info(f"""search row {i}/{len(result)}""")
+                logging.info(
+                    f"""search row {i}/{len(result)} in table {table1.tableName}""")
                 if nbdiff >= int(maxdiff):
                     logging.warning(
                         f"""line {id}:reach max diff {maxdiff} for {table1.schema}.{table1.tableName} total diff:{total_diff}""")
@@ -1461,10 +1464,13 @@ def init(schema1, schema2):
     """
     listTables = table1.get_tablelist(qry_include_table)
     phase = 'compute'
+    i = 0
     for table in listTables:
+        i = i + 1
         tablename = table[0]
         if repo.exists(cxRepo,schemaRepo,schema1,tablename) == 0:
-            logging.info(f"""initializing table {tablename}""")
+            logging.info(
+                f"""initializing table {i}/{len(listTables)} {tablename}""")
             table1.create(tablename,schema1,None,False)
             table2.create(tablename,schema2,None,False)
             repo.insert_table_diff(table1,table2)
@@ -1476,13 +1482,14 @@ def init(schema1, schema2):
               """
         else:
             logging.info(f"""{tablename} initialized""")
-
+    i = 0
     if phase == 'compute':
         listTables = repo.get_tables()
         if len(listTables) == 0:
             logging.info(f"""no table to compare on {schemaRepo}""")
         else:
             for table in listTables:
+                i = i + 1
                 tableName = table[0]
                 server1_select = table[1]
                 server2_select = table[2]
@@ -1495,8 +1502,7 @@ def init(schema1, schema2):
                                       tableName) == 0:
                     step = 0
                     logging.info(
-                        f"""processing table {tableName} (counting rows on 2 dbs, creating objects...)""")
-
+                        f"""processing table {i}/{len(listTables)} {tableName} (counting rows on 2 dbs, creating objects...)""")
                     table1.create(tableName,schema1,server1_select)
                     if table1.pk == '':
                         logging.info(
