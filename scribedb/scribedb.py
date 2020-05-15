@@ -32,6 +32,7 @@ import sys
 import postgres
 import oracle
 
+
 from threading import Thread
 
 
@@ -1609,6 +1610,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=numeric_level,
                         format='%(asctime)s - %(levelname)s - %(message)s')
 
+    # Create the logger and set it's logging level
     gstep = 0
     # divise les tables par 10 pour recherche de diff
     if (cxstring1 is None) or (
