@@ -1,3 +1,5 @@
 psycopg2-binary==2.8.1
 cx_Oracle==7.2.0
 pdoc3==0.6.3
+python-logstash-async==1.6.4
+
