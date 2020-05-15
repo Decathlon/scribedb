@@ -1478,9 +1478,9 @@ def init(schema1, schema2):
             phase = 'init'
             msg = f"""all tables have been initiliazed you can see them with
             \n select * from {schemaRepo}.tablediff where step = 0\n
-              you can modify the template. The 2nd execution will used the
-              step = 0 query to process them.\n
-              """
+            you can modify the template. The 2nd execution will used the
+            step = 0 query to process them.\n
+            """
         else:
             logging.info(f"""{tablename} initialized""")
     i = 0
@@ -1618,13 +1618,18 @@ if __name__ == '__main__':
        cxstring2 is None) or (schema1 is None) or (schema2 is None):
         print(help_msg)
         sys.exit(2)
-
+    logging.debug(f"step is [{step}]")
     if step == "init+compute":
+        logging.debug(f"starting init")
         scribedb_return = init(schema1,schema2)
+        logging.debug(f"exit code after init:{scribedb_return}")
+        logging.debug(f"starting process")
         scribedb_return = init(schema1,schema2)
+        logging.debug(f"exit code after process:{scribedb_return}")
     else:
+        logging.debug(f"starting init only")
         scribedb_return = init(schema1,schema2)
 
     logging.debug(f"exit code:{scribedb_return}")
-    scribedb_return = 0
+    #scribedb_return = 0
     sys.exit(scribedb_return)
