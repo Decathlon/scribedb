@@ -39,7 +39,7 @@ services:
       - schema1=hr
       - schema2=hr
       - schemarepo=diffhr
-      - log=debug
+      - log=info
       - step=init+compute
       - qry_include_table=lower(table_name) not in ('employees')
     links:
