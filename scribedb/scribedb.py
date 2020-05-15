@@ -1612,6 +1612,7 @@ if __name__ == '__main__':
 
     # Create the logger and set it's logging level
     gstep = 0
+    scribedb_return = 0
     # divise les tables par 10 pour recherche de diff
     if (cxstring1 is None) or (
        cxstring2 is None) or (schema1 is None) or (schema2 is None):
@@ -1625,5 +1626,5 @@ if __name__ == '__main__':
         scribedb_return = init(schema1,schema2)
 
     logging.debug(f"exit code:{scribedb_return}")
-    scribedb_return = 0
+    #scribedb_return = 0
     sys.exit(scribedb_return)
