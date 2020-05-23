@@ -199,7 +199,7 @@ class Table(TableRdbms):
         """
         schema = self.schema
         tableName = self.tableName
-        logging.debug(f"""get_pk from {schema}.{tableName}""")
+        logging.debug(f"""{self.dbEngine}: get_pk from {schema}.{tableName}""")
         sql = f"""SELECT c.column_name,c.ordinal_position FROM information_schema.table_constraints
         JOIN information_schema.key_column_usage USING
         (constraint_catalog, constraint_schema, constraint_name,table_catalog,
@@ -229,7 +229,8 @@ class Table(TableRdbms):
         """
         schema = self.schema
         tableName = self.tableName
-        logging.debug(f"""get_order_by from {schema}.{tableName}""")
+        logging.debug(
+            f"""{self.dbEngine}: get_order_by from {schema}.{tableName}""")
         sql = f"""SELECT column_name FROM information_schema.table_constraints
         JOIN information_schema.key_column_usage USING
         (constraint_catalog, constraint_schema, constraint_name,table_catalog,
@@ -284,7 +285,8 @@ class Table(TableRdbms):
             from {self.schema}.{self.viewName}) q1
             {stlimit}
             """
-        logging.debug(f"""format_qry_last {start} {stop}:{sql}""")
+        logging.debug(
+            f"""{self.dbEngine}: format_qry_last {start} {stop}:{sql}""")
         return sql
 
     def format_qry(self):

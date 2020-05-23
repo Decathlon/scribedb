@@ -237,7 +237,8 @@ class Table(TableRdbms):
         """
         schema = self.schema
         tableName = self.tableName
-        logging.debug(f"""__set_pk from {schema}.{tableName}""")
+        logging.debug(
+            f"""{self.dbEngine}: __set_pk from {schema}.{tableName}""")
         sql = f"""SELECT cols.column_name,tc.column_id FROM
         all_constraints cons,
         all_cons_columns cols,
@@ -272,7 +273,8 @@ class Table(TableRdbms):
         """
         schema = self.schema
         tableName = self.tableName
-        logging.debug(f"""__set_pk from {schema}.{tableName}""")
+        logging.debug(
+            f"""{self.dbEngine}: __set_pk from {schema}.{tableName}""")
         sql = f"""SELECT cols.column_name FROM all_constraints cons, all_cons_columns cols WHERE cols.table_name = upper('{tableName}') AND  cols.owner= upper('{schema}') and cons.constraint_type = 'P' AND cons.constraint_name = cols.constraint_name AND cons.owner =  cols.owner ORDER BY cols.table_name, cols.position"""
         conn = self.connect()
         with conn:
