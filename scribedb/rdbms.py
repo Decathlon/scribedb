@@ -50,39 +50,39 @@ class Table():
         self.drop_view()
         self.set_pk()
 
-        if self.is_computable():
-            if select is None:
+        if select is None:
+            if self.is_computable():
                 self.set_fields(tableName)
                 self.set_order_by()
                 select = f"""select {self.fields} from {schema}.{tableName}
                 order by {self.order_by}"""
                 self.create_view(schema,self.viewName,select)
             else:
-                self.order_by = select.split('order by')[1]
-                tmp_order = self.order_by.split(',')
-                colt = ''
-                for result_order in tmp_order:
-                    #col = self.sanitize_name(result_order)
-                    col = result_order
-                    colt = colt + col + ','
-                colt = colt.rstrip(',')
-                self.order_by = colt
-                self.create_view(schema,self.viewName,select)
-                self.set_fields(self.viewName)
-
-            if calNumrows:
-                self.set_numrows(self.viewName)
-            if self.numrows == 0:
-                self.obs = 'NoRows'
-        #
-            self.nbfields = len(self.fields.split(','))
-            self.select = select
+                self.select = ''
+                self.obs = 'NoPk'
+                self.order_by = ''
+                self.fields = ''
+                self.nbfields = 0
+                return
         else:
-            self.select = ''
-            self.obs = 'NoPk'
-            self.order_by = ''
-            self.fields = ''
-            self.nbfields = 0
+            self.order_by = select.split('order by')[1]
+            tmp_order = self.order_by.split(',')
+            colt = ''
+            for result_order in tmp_order:
+                # col = self.sanitize_name(result_order)
+                col = result_order
+                colt = colt + col + ','
+            colt = colt.rstrip(',')
+            self.order_by = colt
+            self.create_view(schema,self.viewName,select)
+            self.set_fields(self.viewName)
+        if calNumrows:
+            self.set_numrows(self.viewName)
+        if self.numrows == 0:
+            self.obs = 'NoRows'
+    #
+        self.nbfields = len(self.fields.split(','))
+        self.select = select
 
     def is_computable(self):
         """
