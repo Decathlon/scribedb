@@ -1509,11 +1509,13 @@ def init(schema1, schema2):
                         logging.info(
                             f"""{table1.getengine()} {tableName} has no pk""")
                         repo.update_table_result(table1)
+                        scribedb_return = 1
                         continue
                     if table1.numrows == 0:
                         logging.info(
                             f"""{table1.getengine()} {tableName} is empty""")
                         repo.update_table_result(table1)
+                        scribedb_return = 1
                         continue
                     logging.info(
                         f"""{table1.getengine()} {tableName} numrows: {table1.numrows} / nbFields: {table1.getNbFields()}""")
@@ -1523,11 +1525,13 @@ def init(schema1, schema2):
                         logging.info(
                             f"""{table1.getengine()} {tableName} has no pk""")
                         repo.update_table_result(table2)
+                        scribedb_return = 1
                         continue
                     if table2.numrows == 0:
                         logging.info(
                             f"""{table2.getengine()} {tableName} is empty""")
                         repo.update_table_result(table2)
+                        scribedb_return = 1
                         continue
                     logging.info(
                         f"""{table2.getengine()} {tableName} numrows: {table2.numrows} / nbFields: {table2.getNbFields()}""")
@@ -1536,6 +1540,7 @@ def init(schema1, schema2):
                         logging.info(
                             f"""number of fields are differents, can not compare such datasets""")
                         repo.update_table_result(table1)
+                        scribedb_return = 1
                         continue
 
                     """ update server1_rows and server2_rows if there is where
