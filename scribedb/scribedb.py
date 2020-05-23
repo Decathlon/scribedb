@@ -1488,6 +1488,7 @@ def init(schema1, schema2):
         listTables = repo.get_tables()
         if len(listTables) == 0:
             logging.info(f"""no table to compare on {schemaRepo}""")
+            scribedb_return = 1
         else:
             for table in listTables:
                 i = i + 1
