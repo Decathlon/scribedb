@@ -1633,7 +1633,7 @@ if __name__ == '__main__':
         scribedb_return = init(schema1,schema2)
         logging.debug(f"exit code after compute:{scribedb_return}")
     else:
-        logging.debug(f"starting init only")
+        logging.debug(f"starting compute only")
         scribedb_return = init(schema1,schema2)
 
     logging.debug(f"exit code:{scribedb_return}")

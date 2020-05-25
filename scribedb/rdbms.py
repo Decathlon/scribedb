@@ -48,10 +48,10 @@ class Table():
         self.tableName = tableName
         self.schema = schema
         self.drop_view()
-        self.set_pk()
 
         if select is None:
             if self.is_computable():
+                self.set_pk()
                 self.set_fields(tableName)
                 self.set_order_by()
                 select = f"""select {self.fields} from {schema}.{tableName}
@@ -68,12 +68,18 @@ class Table():
             self.order_by = select.split('order by')[1]
             tmp_order = self.order_by.split(',')
             colt = ''
+            stp_idx = ''
+            i = 0
             for result_order in tmp_order:
+                i = i + 1
                 # col = self.sanitize_name(result_order)
                 col = result_order
                 colt = colt + col + ','
+                stp_idx = stp_idx + f"""{str(i)},"""
             colt = colt.rstrip(',')
             self.order_by = colt
+            self.pk = colt
+            self.pk_idx = stp_idx.rstrip(',')
             self.create_view(schema,self.viewName,select)
             self.set_fields(self.viewName)
         if calNumrows:
