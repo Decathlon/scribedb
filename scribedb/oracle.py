@@ -335,7 +335,7 @@ class Table(TableRdbms):
         stlimit = "where numrow between {start} and {stop}"
         if self.fields != '':
             sql = f"""select
-            hash_md5(xmlagg(XMLELEMENT(e,md5_concat,'').EXTRACT('//text()')).GetClobVal()) as md5_concat,
+            hash_md5(nvl(xmlagg(XMLELEMENT(e,md5_concat,'').EXTRACT('//text()')).GetClobVal(),0)) as md5_concat,
             sum(nb) as numrow from (select hash_md5(concat) as md5_concat,
             1 as nb from (select {self.concatened_fields} as concat,
             row_number() over (order by 1) numrow
