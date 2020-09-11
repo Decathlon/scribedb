@@ -48,10 +48,11 @@ class Table():
         self.tableName = tableName
         self.schema = schema
         self.drop_view()
-        select = select.replace('ORDER BY','order by')
-        select = select.replace('SELECT','select')
-        select = select.replace('FROM','from')
-        select = select.replace('\r\n',' ')
+        if select is not None:
+            select = select.replace('ORDER BY','order by')
+            select = select.replace('SELECT','select')
+            select = select.replace('FROM','from')
+            select = select.replace('\r\n',' ')
 
         if select is None:
             if self.is_computable():
