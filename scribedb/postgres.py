@@ -118,6 +118,7 @@ class Table(TableRdbms):
         s_col = self.sanitize_name(column)
         sql = f"""SELECT data_type FROM information_schema.columns where
         (table_schema, table_name, column_name) = ('{self.schema}','{object_name}','{s_col}')"""
+        sql = sql.lower()
         conn = self.connect()
         with conn:
             with conn.cursor() as curs:

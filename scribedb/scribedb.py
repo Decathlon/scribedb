@@ -713,7 +713,7 @@ class Repo():
         global result is nok
         """
         sql = f"""update {schemaRepo}.tablediff set result = 'nok',
-        server1_status = 'done',server2_status = 'done', comments = '{table.obs}' 
+        server1_status = 'done',server2_status = 'done', comments = '{table.obs}'
         where step = 0
         and lower(table_name) = lower('{table.tableName}')
         and exists (select 1 from {schemaRepo}.tablediff where step>0
@@ -746,7 +746,7 @@ class Repo():
         (because fo filter) so the global result is ok
         """
         sql = f"""update {schemaRepo}.tablediff set result = 'ok',
-        server1_status = 'done',server2_status = 'done' , comments = '{table.obs}' 
+        server1_status = 'done',server2_status = 'done' , comments = '{table.obs}'
         where step = 0
         and lower(table_name) = lower('{table.tableName}')
         and server1_rows = server2_rows and server1_rows = 0
@@ -1329,6 +1329,8 @@ class Repo():
                     we consider dts == => we put the same uuid in hash
                     if not then <> hash to look for missing records
                     """
+                    logging.info(
+                        f"""compute_md5 for {table1.tableName} is skipped limit is (limit_md5_compute): {table1.numrows} > {limit_md5_compute}""")
                     if table1.numrows == table2.numrows:
                         good_hash = uuid.uuid1()
                         ret1.result = good_hash
@@ -1661,5 +1663,5 @@ if __name__ == '__main__':
         scribedb_return = init(schema1,schema2)
 
     logging.debug(f"exit code:{scribedb_return}")
-    #scribedb_return = 0
+    # scribedb_return = 0
     sys.exit(scribedb_return)

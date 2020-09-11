@@ -48,6 +48,8 @@ class Table():
         self.tableName = tableName
         self.schema = schema
         self.drop_view()
+        if select == "":
+            select = None
         if select is not None:
             select = select.replace('ORDER BY','order by')
             select = select.replace('SELECT','select')
@@ -70,7 +72,7 @@ class Table():
                 self.nbfields = 0
                 return
         else:
-            self.order_by = select.split('order by')[1]
+            self.order_by = select.upper().split('ORDER BY')[1]
             tmp_order = self.order_by.split(',')
             colt = ''
             stp_idx = ''
