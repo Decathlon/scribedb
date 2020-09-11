@@ -31,7 +31,7 @@ import socket
 import sys
 import postgres
 import oracle
-
+import uuid
 
 from threading import Thread
 
@@ -879,7 +879,7 @@ class Repo():
                 # if rst_row == "3800497307669":
                 #    logging.info(f"""cdebug""")
                 if rst_row is not None:
-                    columnname = result_col
+                    columnname = result_col.split('collate')[0]
                     value_utf8 = ""
                     field_type = table.get_field_datatype(
                         table.viewName,columnname)
@@ -1148,6 +1148,7 @@ class Repo():
         for each of them, execute qry on separate thread to retreive datasets
         """
         nberr = 1
+        nberrt = 0
         logging.debug(f"""qry compute_diffrowset : {sql}""")
         conn = self.connect(self.cxRepo)
         with conn.cursor() as curs:
@@ -1231,7 +1232,8 @@ class Repo():
 
                     self.set_status(id,'done',1)
                     self.set_status(id,'done',2)
-        return nberr
+                    nberrt = nberrt + nberr
+        return nberrt
 
     def compute_md5(self, table1, table2):
         """
@@ -1294,31 +1296,51 @@ class Repo():
                 self.set_qry(qry1.id,qry1.sqltext,1)
                 self.set_qry(qry2.id,qry2.sqltext,2)
 
-                """
-                start the threads on server1 and server2
-                """
-                try:
-                    qry_thread_1.start()
-                except Exception:
-                    logging.error("thread error")
-                    break
-                try:
-                    qry_thread_2.start()
-                except Exception:
-                    logging.error("thread error")
-                    break
-
-                """
-                wait for the 2 thread to terminate
-                """
-                r1 = qry_thread_1.join()
-                r2 = qry_thread_2.join()
                 ret1 = self.ResultMd5('',0)
                 ret2 = self.ResultMd5('',0)
-                ret1.result = r1[0][0]
-                ret1.numrows = r1[0][1]
-                ret2.result = r2[0][0]
-                ret2.numrows = r2[0][1]
+
+                if table1.numrows <= int(limit_md5_compute):
+                    """
+                    start the threads on server1 and server2
+                    """
+                    try:
+                        qry_thread_1.start()
+                    except Exception:
+                        logging.error("thread error")
+                        break
+                    try:
+                        qry_thread_2.start()
+                    except Exception:
+                        logging.error("thread error")
+                        break
+
+                    """
+                    wait for the 2 thread to terminate
+                    """
+                    r1 = qry_thread_1.join()
+                    r2 = qry_thread_2.join()
+                    ret1.result = r1[0][0]
+                    ret1.numrows = r1[0][1]
+                    ret2.result = r2[0][0]
+                    ret2.numrows = r2[0][1]
+                else:
+                    """
+                    if numrows>limitmd5 then if numrows are idem
+                    we consider dts == => we put the same uuid in hash
+                    if not then <> hash to look for missing records
+                    """
+                    if table1.numrows == table2.numrows:
+                        good_hash = uuid.uuid1()
+                        ret1.result = good_hash
+                        ret1.numrows = table1.numrows
+                        ret2.result = good_hash
+                        ret2.numrows = table2.numrows
+                    else:
+                        ret1.result = uuid.uuid1()
+                        ret1.numrows = table1.numrows
+                        ret2.result = uuid.uuid1()
+                        ret2.numrows = table2.numrows
+
             else:
                 ret1 = self.ResultMd5(
                     table1.getengine() + ' nbrows<>' + str(table1.numrows),table1.numrows)
@@ -1606,6 +1628,7 @@ if __name__ == '__main__':
     schema1 = os.environ.get("schema1", None)
     schema2 = os.environ.get("schema2", None)
     qry_include_table = os.environ.get("qry_include_table", "true")
+    limit_md5_compute = os.environ.get("limit_md5_compute", 10000000)
     step = os.environ.get("step","init+compute")
     if cxRepo is None:
         cxRepo = os.environ.get("cxRepo", None)
