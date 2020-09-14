@@ -110,6 +110,41 @@ class Repo():
         self.connect_timeout = connect_timeout
         self.total_nbdiff = 0
 
+    def reset_result(self, do):
+        """
+        if do, then delete old result in row_diff, remove steps>0 in tablediff
+        Arguments:
+          do {[boolean]} 
+        Returns:
+          None
+        """
+        if do:
+            logging.info('resetting previous results')
+            connRepo = self.connect(self.cxRepo)
+            sql = f"""delete from {self.schemaRepo}.tablediff where step>0"""
+            with connRepo.cursor() as curs:
+                try:
+                    curs.execute(sql)
+                except connRepo.DatabaseError as exc:
+                    error, = exc.args
+                    logging.error(f"""error executing {sql} : {error}""")
+            sql = f"""delete from {self.schemaRepo}.rowdiff"""
+            with connRepo.cursor() as curs:
+                try:
+                    curs.execute(sql)
+                except connRepo.DatabaseError as exc:
+                    error, = exc.args
+                    logging.error(f"""error executing {sql} : {error}""")
+            sql = f"""update {self.schemaRepo}.tablediff set server1_status =
+          'ready',server2_status = 'ready',result = 'init'"""
+            with connRepo.cursor() as curs:
+                try:
+                    curs.execute(sql)
+                except connRepo.DatabaseError as exc:
+                    error, = exc.args
+                    logging.error(f"""error executing {sql} : {error}""")
+            connRepo.commit()
+
     def connect(self, cxString):
         """
         return a database connection to postgres before executing query
@@ -375,24 +410,6 @@ class Repo():
               ALTER TABLE {self.schemaRepo}.rowdiff ALTER id SET DEFAULT nextval('
               {self.schemaRepo}.rowdiff_id_seq'::regclass);"""
         connRepo = self.connect(self.cxRepo)
-        with connRepo.cursor() as curs:
-            try:
-                curs.execute(sql)
-            except connRepo.DatabaseError as exc:
-                error, = exc.args
-                logging.error(f"""error executing {sql} : {error}""")
-        connRepo.commit()
-
-    def razcompare(self):
-        """
-        reset the schema repo to start a new compare
-        """
-        connRepo = self.connect(self.cxRepo)
-        sql = "delete from {self.schemaRepo}.tablediff where step>0"
-        with connRepo.cursor() as curs:
-            curs.execute(sql)
-        sql = f"""udpate {self.schemaRepo}.tablediff set server1_status =
-        'ready',server2_status = 'ready',result = 'unkonwn'"""
         with connRepo.cursor() as curs:
             try:
                 curs.execute(sql)
@@ -1009,16 +1026,16 @@ class Repo():
 
                 qry1 = qry1_fields + build_where(table1,result_row)
                 qry2 = qry2_fields + build_where(table2,result_row)
-              #  list_fields = '|'
-              #  list_fields = list_fields.join(result_row)
+                #  list_fields = '|'
+                #  list_fields = list_fields.join(result_row)
 
                 for result_col in result_row:
                     test = "{}"
                     list_fields = list_fields + '|' + test.format(result_col)
-              #      if type(result_col) is str:
-              #            list_fields = ''.join(list_fields,'|',result_col)
-              #        else:
-              #            list_fields = ''.join(list_fields,'|',result_col)
+                #      if type(result_col) is str:
+                #            list_fields = ''.join(list_fields,'|',result_col)
+                #        else:
+                #            list_fields = ''.join(list_fields,'|',result_col)
 
                     # .encode
                     # ('utf-8').strip()
@@ -1465,6 +1482,8 @@ def init(schema1, schema2):
                 )
     repo.create()
 
+    repo.reset_result(reset)
+
     """
     if a previous run was interrupted, then we must reset the status, to
     reprocess the row
@@ -1629,6 +1648,7 @@ if __name__ == '__main__':
     cxRepo = os.environ.get("cxrepo", None)
     schema1 = os.environ.get("schema1", None)
     schema2 = os.environ.get("schema2", None)
+    reset = os.environ.get("reset_result", False)
     qry_include_table = os.environ.get("qry_include_table", "true")
     limit_md5_compute = os.environ.get("limit_md5_compute", 10000000)
     step = os.environ.get("step","init+compute")
