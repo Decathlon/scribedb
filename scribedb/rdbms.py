@@ -156,6 +156,7 @@ class Table():
         s_column = s_column.replace('\n','')
         s_column = s_column.rstrip(' ')
         s_column = s_column.lstrip(' ')
+        s_column = s_column.split(' collate')[0]
         return s_column
 
     def create_view(self, schema, viewName, select):
