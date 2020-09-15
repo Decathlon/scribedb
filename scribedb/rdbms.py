@@ -201,8 +201,8 @@ class Table():
         """
 
         logging.debug(
-            f"""{self.dbEngine}: select count(*) as nb from {self.schema}.{viewName}_count""")
-        sql = f"""select count(*) as nb from {self.schema}.{viewName}_count"""
+            f"""{self.dbEngine}: select count(*) as nb from {self.schema}.{viewName}_c""")
+        sql = f"""select count(*) as nb from {self.schema}.{viewName}_c"""
         conn = self.connect()
         with conn:
             with conn.cursor() as curs:
