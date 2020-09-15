@@ -99,7 +99,7 @@ class Table(TableRdbms):
                     if error.find('does not exists') == 0:
                         logging.error(
                             f"""{self.dbEngine}:error executing {sql} : {error}""")
-        sql = f"""drop view if exists {self.schema}.{self.viewName}_count"""
+        sql = f"""drop view if exists {self.schema}.{self.viewName}_c"""
         conn = self.conn
         with conn:
             with conn.cursor() as curs:

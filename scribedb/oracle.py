@@ -164,7 +164,7 @@ class Table(TableRdbms):
                     if error.code != 942:
                         logging.debug(
                             f"""{self.dbEngine}:error drop_views executing {sql} {error}""")
-        sql = f"""drop view {self.schema}.{self.viewName}_count"""
+        sql = f"""drop view {self.schema}.{self.viewName}_c"""
         conn = self.connect()
         with conn:
             with conn.cursor() as curs:
