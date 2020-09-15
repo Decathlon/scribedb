@@ -99,6 +99,17 @@ class Table(TableRdbms):
                     if error.find('does not exists') == 0:
                         logging.error(
                             f"""{self.dbEngine}:error executing {sql} : {error}""")
+        sql = f"""drop view if exists {self.schema}.{self.viewName}_count"""
+        conn = self.conn
+        with conn:
+            with conn.cursor() as curs:
+                try:
+                    curs.execute(sql)
+                except Exception as e:
+                    error, = e.args
+                    if error.find('does not exists') == 0:
+                        logging.error(
+                            f"""{self.dbEngine}:error executing {sql} : {error}""")
 
     def get_field_datatype(self, object_name, column):
         """ used during dynamic query building, to eventually add quote or not.

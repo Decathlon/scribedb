@@ -164,6 +164,17 @@ class Table(TableRdbms):
                     if error.code != 942:
                         logging.debug(
                             f"""{self.dbEngine}:error drop_views executing {sql} {error}""")
+        sql = f"""drop view {self.schema}.{self.viewName}_count"""
+        conn = self.connect()
+        with conn:
+            with conn.cursor() as curs:
+                try:
+                    curs.execute(sql)
+                except Exception as e:
+                    error, = e.args
+                    if error.code != 942:
+                        logging.debug(
+                            f"""{self.dbEngine}:error drop_views executing {sql} {error}""")
 
     def cast_field(self, field, datatype):
         # if "TIMESTAMP" in datatype:

@@ -174,6 +174,17 @@ class Table():
                     error, = exc.args
                     logging.error(
                         f"""{self.dbEngine}: error executing {sql} : {error}""")
+        sql = f"""create or replace view {schema}.{viewName}_count as {select}"""
+        sql = sql.split('order by')[0]
+        conn = self.connect()
+        with conn:
+            with conn.cursor() as curs:
+                try:
+                    curs.execute(sql)
+                except conn.DatabaseError as exc:
+                    error, = exc.args
+                    logging.error(
+                        f"""{self.dbEngine}: error executing {sql} : {error}""")
 
     def get_tablelist(self, qry_include_table):
         """
@@ -190,8 +201,8 @@ class Table():
         """
 
         logging.debug(
-            f"""{self.dbEngine}: select count(*) as nb from {self.schema}.{viewName}""")
-        sql = f"""select count(*) as nb from {self.schema}.{viewName}"""
+            f"""{self.dbEngine}: select count(*) as nb from {self.schema}.{viewName}_count""")
+        sql = f"""select count(*) as nb from {self.schema}.{viewName}_count"""
         conn = self.connect()
         with conn:
             with conn.cursor() as curs:
