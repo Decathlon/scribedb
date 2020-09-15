@@ -174,7 +174,7 @@ class Table():
                     error, = exc.args
                     logging.error(
                         f"""{self.dbEngine}: error executing {sql} : {error}""")
-        sql = f"""create or replace view {schema}.{viewName}_count as {select}"""
+        sql = f"""create or replace view {schema}.{viewName}_c as {select}"""
         sql = sql.split('order by')[0]
         conn = self.connect()
         with conn:
