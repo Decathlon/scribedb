@@ -902,22 +902,27 @@ class Repo():
                         table.viewName,columnname)
                     if ("char".upper() in field_type.upper()) or (
                             "text".upper() in field_type.upper()):
-                        if type(rst_row) is int:
-                            value_from_db = str(rst_row)
-                        else:
-                            value_from_db = rst_row
-                        try:
-                            value_utf8 = value_from_db.encode('utf-8')
-                        except Exception as e:
-                            error, = e.args
-                            logging.error(
-                                f"""error executing encode for {value_from_db}: #{error}# column:#{columnname}# field_type:#{field_type}# rst_row:#{rst_row}#""")
+                        value_from_db = str(rst_row)
+                        value_utf8 = value_from_db.encode('utf-8')
+                        # if type(rst_row) is int:
+                        #    value_from_db = str(rst_row)
+                        # else:
+                        #    value_from_db = rst_row
+                        # try:
+                        #    value_utf8 = value_from_db.encode('utf-8')
+                        # except AttributeError as e:
+                        #    value_utf8 = value_from_db
+                        #  #  error, = e.args
+#
+                        #   # logging.INFO(f"""error executing encode for {value_from_db}: #{error}# column:#{columnname}# field_type:#{field_type}# #rst_row:#{rst_row}#""")
 
                         quote = "'"
+
                         where_clause = where_clause + ' AND ' + columnname + \
                             ' = ' + quote + \
                             value_utf8.decode(
                                 'utf-8').replace("'","''") + quote
+
                     elif (("timestamp".upper() in field_type.upper()) or ("date".upper() in field_type.upper())):
                         st1 = "to_date('"
                         st2 = "','YYYY-MM-DD HH24:MI:SS')"
