@@ -911,7 +911,7 @@ class Repo():
                         except Exception as e:
                             error, = e.args
                             logging.error(
-                                f"""error executing encode for {value_from_db} : {error}""")
+                                f"""error executing encode for {value_from_db}: #{error}# column:#{columnname}# field_type:#{field_type}# rst_row:#{rst_row}#""")
 
                         quote = "'"
                         where_clause = where_clause + ' AND ' + columnname + \
