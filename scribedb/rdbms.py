@@ -174,7 +174,7 @@ class Table():
                     error, = exc.args
                     logging.error(
                         f"""{self.dbEngine}: error executing {sql} : {error}""")
-        sql = f"""create or replace view {schema}.{viewName}_c as {select}"""
+        sql = f"""create or replace view {schema}.{viewName[0:28]}_c as {select}"""
         sql = sql.split('order by')[0]
         conn = self.connect()
         with conn:
@@ -201,8 +201,8 @@ class Table():
         """
 
         logging.debug(
-            f"""{self.dbEngine}: select count(*) as nb from {self.schema}.{viewName}_c""")
-        sql = f"""select count(*) as nb from {self.schema}.{viewName}_c"""
+            f"""{self.dbEngine}: select count(*) as nb from {self.schema[0:28]}.{viewName}_c""")
+        sql = f"""select count(*) as nb from {self.schema}.{viewName[0:28]}_c"""
         conn = self.connect()
         with conn:
             with conn.cursor() as curs:
