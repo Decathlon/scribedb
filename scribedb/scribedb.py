@@ -57,7 +57,7 @@ class ExecQry(Thread):
         returns the dataset
         """
         rows = None
-        logging.info(f"""Thread {self.name} starting""")
+        logging.debug(f"""Thread {self.name} starting""")
         if self.sql.startswith('select'):
             conn = self.table.connect()
             with conn.cursor() as curs:
@@ -71,7 +71,7 @@ class ExecQry(Thread):
                     raise exc
                 else:
                     rows = curs.fetchall()
-        logging.info(f"""Thread {self.name} complete""")
+        logging.debug(f"""Thread {self.name} complete""")
         self.result_exec = rows
 
     def join(self, *args):
