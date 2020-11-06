@@ -1175,7 +1175,7 @@ class Repo():
         conn = self.connect(self.cxRepo)
         with conn.cursor() as curs:
             rows = None
-            if search_diff:
+            if search_diff == "true":
                 curs.execute(sql)
                 rows = curs.fetchall()
             if rows is not None:
@@ -1658,7 +1658,7 @@ if __name__ == '__main__':
     reset = os.environ.get("reset_result", False)
     qry_include_table = os.environ.get("qry_include_table", "true")
     limit_md5_compute = os.environ.get("limit_md5_compute", 10000000)
-    search_diff = os.environ.get("search_diff", True)
+    search_diff = os.environ.get("search_diff", "true")
     step = os.environ.get("step","init+compute")
     if cxRepo is None:
         cxRepo = os.environ.get("cxRepo", None)
