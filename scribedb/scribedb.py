@@ -1174,8 +1174,10 @@ class Repo():
         logging.debug(f"""qry compute_diffrowset : {sql}""")
         conn = self.connect(self.cxRepo)
         with conn.cursor() as curs:
-            curs.execute(sql)
-            rows = curs.fetchall()
+            rows = None
+            if search_diff:
+                curs.execute(sql)
+                rows = curs.fetchall()
             if rows is not None:
                 for row in rows:
                     if self.total_nbdiff != 0:
@@ -1360,9 +1362,9 @@ class Repo():
                         ret2.result = good_hash
                         ret2.numrows = table2.numrows
                     else:
-                        ret1.result = 'error'
+                        ret1.result = uuid.uuid1()
                         ret1.numrows = table1.numrows
-                        ret2.result = 'error'
+                        ret2.result = uuid.uuid1()
                         ret2.numrows = table2.numrows
 
             else:
@@ -1656,6 +1658,7 @@ if __name__ == '__main__':
     reset = os.environ.get("reset_result", False)
     qry_include_table = os.environ.get("qry_include_table", "true")
     limit_md5_compute = os.environ.get("limit_md5_compute", 10000000)
+    search_diff = os.environ.get("search_diff", True)
     step = os.environ.get("step","init+compute")
     if cxRepo is None:
         cxRepo = os.environ.get("cxRepo", None)
