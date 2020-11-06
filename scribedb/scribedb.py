@@ -1009,7 +1009,7 @@ class Repo():
             total_diff = len(result)
             for result_row in result:
                 i = i + 1
-                logging.info(
+                logging.debug(
                     f"""search row {i}/{len(result)} in table {table1.tableName}""")
                 if nbdiff >= int(maxdiff):
                     logging.warning(
