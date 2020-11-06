@@ -1360,9 +1360,9 @@ class Repo():
                         ret2.result = good_hash
                         ret2.numrows = table2.numrows
                     else:
-                        ret1.result = uuid.uuid1()
+                        ret1.result = 'error'
                         ret1.numrows = table1.numrows
-                        ret2.result = uuid.uuid1()
+                        ret2.result = 'error'
                         ret2.numrows = table2.numrows
 
             else:
