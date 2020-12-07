@@ -1588,12 +1588,12 @@ def init(schema1, schema2):
                     logging.info(
                         f"""{table2.getengine()} {tableName} numrows: {table2.numrows} / nbFields: {table2.getNbFields()}""")
 
-                    if table2.getNbFields() != table1.getNbFields():
-                        logging.info(
-                            f"""number of fields are differents, can not compare such datasets""")
-                        repo.update_table_result(table1)
-                        scribedb_return = 1
-                        continue
+                    #if table2.getNbFields() != table1.getNbFields():
+                    #    logging.info(
+                    #    f"""number of fields are differents, can not compare such datasets""")
+                    #    repo.update_table_result(table1)
+                    #    scribedb_return = 1
+                    #    continue
 
                     """ update server1_rows and server2_rows if there is where
                     clause"""
