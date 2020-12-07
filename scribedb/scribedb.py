@@ -161,12 +161,12 @@ class Repo():
         s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         # Time the connection needs to remain idle before start sending
         # keepalive probes
-        s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 60)
+    #    s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 60)
         # Time between individual keepalive probes
-        s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 1)
+    #    s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 1)
         # The maximum number of keepalive probes should send before dropping
         # the connection
-        s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
+    #    s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
         return conn
 
     def split(self, table1, table2, step, high_limit, low_limit):
@@ -1588,12 +1588,12 @@ def init(schema1, schema2):
                     logging.info(
                         f"""{table2.getengine()} {tableName} numrows: {table2.numrows} / nbFields: {table2.getNbFields()}""")
 
-                    #if table2.getNbFields() != table1.getNbFields():
-                    #    logging.info(
-                    #    f"""number of fields are differents, can not compare such datasets""")
-                    #    repo.update_table_result(table1)
-                    #    scribedb_return = 1
-                    #    continue
+                    if table2.getNbFields() != table1.getNbFields():
+                        logging.info(
+                        f"""number of fields are differents, can not compare such datasets""")
+                        #repo.update_table_result(table1)
+                        scribedb_return = 1
+                        continue
 
                     """ update server1_rows and server2_rows if there is where
                     clause"""
