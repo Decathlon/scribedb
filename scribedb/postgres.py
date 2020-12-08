@@ -35,12 +35,12 @@ class Table(TableRdbms):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         # Time the connection needs to remain idle before start sending
         # keepalive probes
-        s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 60)
+    #    s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 60)
         # Time between individual keepalive probes
-        s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 1)
+    #    s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 1)
         # The maximum number of keepalive probes should send before dropping
         # the connection
-        s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
+    #    s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
         cur = conn.cursor()
         cur.execute(f"""SET search_path TO {self.schema}""")
         return conn
@@ -167,6 +167,7 @@ class Table(TableRdbms):
         fieldst = ""
         datatype_st = ""
         server_field = ""
+        myfields = []
         sql = f"""SELECT '"'||column_name||'"' FROM information_schema.columns where
         (lower(table_schema), lower(table_name)) = (lower('{self.schema}'),
         lower('{object_name}')) ORDER BY ordinal_position"""
@@ -177,6 +178,7 @@ class Table(TableRdbms):
                 rows = list(curs.fetchall())
                 for row in rows:
                     rv = row[0]
+                    myfields.append((row[0].strip('"')).upper())
                     server_field = server_field + ',' + rv
                     datatype = self.get_field_datatype(object_name,rv)
                     datatype_st = datatype_st + datatype + '||'
@@ -199,6 +201,7 @@ class Table(TableRdbms):
                     else:
                         fieldst = fieldst + \
                             f""" coalesce({rv}::text,'')||'|'||"""
+                self.tup_fields = tuple(myfields)
         self.concatened_fields = fieldst.rstrip('||')
         self.datatype_list = datatype_st.rstrip('||')
         self.fields = server_field.lstrip(',')

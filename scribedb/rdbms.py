@@ -19,6 +19,7 @@ class Table():
         self.pk_idx = None
         self.obs = ''
 
+
     def cleanObjects(self, val):
         val = val.strip('.')
         val = val.strip('\n')

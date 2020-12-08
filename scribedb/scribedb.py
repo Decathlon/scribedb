@@ -889,8 +889,8 @@ class Repo():
             pk_idxlist = table.get_pk_idx()
             pk_idx = pk_idxlist.split(',')
             for result_col in rows:
-                idx = int(pk_idx[i])
-                rst_row = result_row[idx - 1]
+                idx = table.tup_fields.index((result_col).strip(' '))
+                rst_row = result_row[idx]
                 i = i + 1
                 # remove
                 # if rst_row == "3800497307669":
@@ -1118,6 +1118,8 @@ class Repo():
                     desc = f"""(+ in server1 {table1.getengine()}) {fieldst1} ; (- in server2 {table2.getengine()}) """
                 elif nbrows1 == 0 and nbrows2 == 1:
                     desc = f"""(- in server1 {table1.getengine()}) ; (+ in server2 {table2.getengine()}) {fieldst2}"""
+                elif nbrows1 == 0 and nbrows2 == 0:
+                    desc = f"""found {list_fields} but not in db"""
 
                 quoteddesc = desc.replace("'","''")
                 quotedlist_fields = list_fields.replace("'","''")
@@ -1299,80 +1301,74 @@ class Repo():
         """
         while (qry1 is not None):
 
-            if table1.numrows == table2.numrows:
+            #if table1.numrows == table2.numrows:
+
+            """
+            create the 2 threads objects to execute qry
+            """
+            qry_thread_1 = ExecQry(
+                table1.getengine() + '_Hash',table1,qry1.sqltext)
+            qry_thread_2 = ExecQry(
+                table2.getengine() + '_Hash',table2,qry2.sqltext)
+
+#            logging.debug("thread1 = " + qry_thread_1.name + "qry = " + qry1.
+#                          sqltext)
+#            logging.debug("thread2 = " + qry_thread_2.name + "qry = " + qry2.
+#                          sqltext)
+
+            self.set_status(qry1.id,'running',1)
+            self.set_status(qry2.id,'running',2)
+
+            self.set_qry(qry1.id,qry1.sqltext,1)
+            self.set_qry(qry2.id,qry2.sqltext,2)
+
+            ret1 = self.ResultMd5('',0)
+            ret2 = self.ResultMd5('',0)
+
+            if table1.numrows <= int(limit_md5_compute):
+                """
+                start the threads on server1 and server2
+                """
+                try:
+                    qry_thread_1.start()
+                except Exception:
+                    logging.error("thread error")
+                    break
+                try:
+                    qry_thread_2.start()
+                except Exception:
+                    logging.error("thread error")
+                    break
 
                 """
-                create the 2 threads objects to execute qry
+                wait for the 2 thread to terminate
                 """
-                qry_thread_1 = ExecQry(
-                    table1.getengine() + '_Hash',table1,qry1.sqltext)
-                qry_thread_2 = ExecQry(
-                    table2.getengine() + '_Hash',table2,qry2.sqltext)
-
-    #            logging.debug("thread1 = " + qry_thread_1.name + "qry = " + qry1.
-    #                          sqltext)
-    #            logging.debug("thread2 = " + qry_thread_2.name + "qry = " + qry2.
-    #                          sqltext)
-
-                self.set_status(qry1.id,'running',1)
-                self.set_status(qry2.id,'running',2)
-
-                self.set_qry(qry1.id,qry1.sqltext,1)
-                self.set_qry(qry2.id,qry2.sqltext,2)
-
-                ret1 = self.ResultMd5('',0)
-                ret2 = self.ResultMd5('',0)
-
-                if table1.numrows <= int(limit_md5_compute):
-                    """
-                    start the threads on server1 and server2
-                    """
-                    try:
-                        qry_thread_1.start()
-                    except Exception:
-                        logging.error("thread error")
-                        break
-                    try:
-                        qry_thread_2.start()
-                    except Exception:
-                        logging.error("thread error")
-                        break
-
-                    """
-                    wait for the 2 thread to terminate
-                    """
-                    r1 = qry_thread_1.join()
-                    r2 = qry_thread_2.join()
-                    ret1.result = r1[0][0]
-                    ret1.numrows = r1[0][1]
-                    ret2.result = r2[0][0]
-                    ret2.numrows = r2[0][1]
-                else:
-                    """
-                    if numrows>limitmd5 then if numrows are idem
-                    we consider dts == => we put the same uuid in hash
-                    if not then <> hash to look for missing records
-                    """
-                    logging.info(
-                        f"""compute_md5 for {table1.tableName} is skipped limit is (limit_md5_compute): {table1.numrows} > {limit_md5_compute}""")
-                    if table1.numrows == table2.numrows:
-                        good_hash = uuid.uuid1()
-                        ret1.result = good_hash
-                        ret1.numrows = table1.numrows
-                        ret2.result = good_hash
-                        ret2.numrows = table2.numrows
-                    else:
-                        ret1.result = uuid.uuid1()
-                        ret1.numrows = table1.numrows
-                        ret2.result = uuid.uuid1()
-                        ret2.numrows = table2.numrows
-
+                r1 = qry_thread_1.join()
+                r2 = qry_thread_2.join()
+                ret1.result = r1[0][0]
+                ret1.numrows = r1[0][1]
+                ret2.result = r2[0][0]
+                ret2.numrows = r2[0][1]
             else:
-                ret1 = self.ResultMd5(
-                    table1.getengine() + ' nbrows<>' + str(table1.numrows),table1.numrows)
-                ret2 = self.ResultMd5(
-                    table2.getengine() + ' nbrows<>' + str(table2.numrows),table2.numrows)
-                err = 1
+                """
+                if numrows>limitmd5 then if numrows are idem
+                we consider dts == => we put the same uuid in hash
+                if not then <> hash to look for missing records
+                """
+                logging.info(
+                    f"""compute_md5 for {table1.tableName} is skipped limit is (limit_md5_compute): {table1.numrows} > {limit_md5_compute}""")
+                if table1.numrows == table2.numrows:
+                    good_hash = uuid.uuid1()
+                    ret1.result = good_hash
+                    ret1.numrows = table1.numrows
+                    ret2.result = good_hash
+                    ret2.numrows = table2.numrows
+                else:
+                    ret1.result = uuid.uuid1()
+                    ret1.numrows = table1.numrows
+                    ret2.result = uuid.uuid1()
+                    ret2.numrows = table2.numrows
+
 
             """
             Fill some flag values to represent the status and result

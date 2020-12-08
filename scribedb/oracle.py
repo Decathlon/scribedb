@@ -221,6 +221,7 @@ class Table(TableRdbms):
         fieldst = ""
         datatype_st = ""
         server_field = ""
+        myfields = []
 
         sql = f"""SELECT column_name,'"'||column_name||'"' FROM all_tab_columns where
         (upper(owner), upper(table_name)) in ((upper('{self.schema}'),
@@ -234,8 +235,10 @@ class Table(TableRdbms):
                 server_field = server_field + ',' + row[1]
                 datatype = self.get_field_datatype(object_name,row[0])
                 field = f"""nvl({row[0]},'')"""
+                myfields.append(row[0])
                 fieldst = fieldst + self.cast_field(field,datatype)
                 datatype_st = datatype_st + datatype + '||'
+            self.tup_fields = tuple(myfields)
         self.concatened_fields = fieldst.rstrip('||')
         self.datatype_list = datatype_st.rstrip('||')
         self.fields = server_field.lstrip(',')
