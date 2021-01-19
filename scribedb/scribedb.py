@@ -1385,7 +1385,7 @@ class Repo():
                 hash1 = ret1.result
                 if ret1.numrows is not None:
                     numrows1 = ret1.numrows
-                else
+                else:
                     numrows1 = 0
 
             if ret2 is not None:
