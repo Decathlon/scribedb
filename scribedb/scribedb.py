@@ -1383,7 +1383,10 @@ class Repo():
             if ret1 is not None:
                 vhash1 = ret1
                 hash1 = ret1.result
-                numrows1 = ret1.numrows
+                if ret1.numrows is not None:
+                    numrows1 = ret1.numrows
+                else
+                    numrows1 = 0
 
             if ret2 is not None:
                 vhash2 = ret2
