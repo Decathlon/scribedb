@@ -1,9 +1,9 @@
-\c hr
+
 DO
 $do$
 BEGIN
    IF NOT EXISTS (
-      SELECT 
+      SELECT
       FROM   information_schema.schemata
       WHERE schema_name='hr') THEN
 
@@ -14,28 +14,28 @@ BEGIN
       set search_path to hr;
 
       CREATE TABLE regions
-          ( region_id      SERIAL primary key,       
-            region_name    VARCHAR(25) 
+          ( region_id      SERIAL primary key,
+            region_name    VARCHAR(25)
           );
 
-      CREATE TABLE countries 
-          ( country_id      CHAR(2) not null PRIMARY KEY       
-          , country_name    VARCHAR(40) 
+      CREATE TABLE countries
+          ( country_id      CHAR(2) not null PRIMARY KEY
+          , country_name    VARCHAR(40)
           , region_id       INTEGER  REFERENCES regions(region_id)
-          ); 
+          );
 
       CREATE TABLE locations
           ( location_id    SERIAL PRIMARY KEY
           , street_address VARCHAR(40)
           , postal_code    VARCHAR(12)
-          , city       VARCHAR(30) NOT NULL        
+          , city       VARCHAR(30) NOT NULL
           , state_province VARCHAR(25)
           , country_id     CHAR(2) REFERENCES countries (country_id)
           ) ;
 
       CREATE TABLE departments
           ( department_id    SERIAL PRIMARY KEY
-          , department_name  VARCHAR(30) NOT NULL        
+          , department_name  VARCHAR(30) NOT NULL
           , manager_id       INTEGER
           , location_id      INTEGER references locations (location_id)
           ) ;
@@ -60,7 +60,7 @@ BEGIN
           , manager_id     INTEGER REFERENCES employees(employee_id)
           , department_id  INTEGER REFERENCES departments(department_id)
           , CONSTRAINT     emp_salary_min
-                          CHECK (salary > 0) 
+                          CHECK (salary > 0)
           , CONSTRAINT     emp_email_uk
                           UNIQUE (email)
           ) ;
@@ -72,7 +72,7 @@ BEGIN
       CREATE TABLE job_history
           ( employee_id   INTEGER NOT NULL REFERENCES employees(employee_id)
           , start_date    TIMESTAMP NOT NULL
-          , end_date      TIMESTAMP NOT NULL        
+          , end_date      TIMESTAMP NOT NULL
           , job_id        VARCHAR(10) NOT NULL REFERENCES jobs(job_id)
           , department_id INTEGER REFERENCES departments(department_id)
           , PRIMARY KEY (employee_id, start_date)
@@ -132,7 +132,7 @@ BEGIN
       Insert into HR.LOCATIONS (LOCATION_ID,STREET_ADDRESS,POSTAL_CODE,CITY,STATE_PROVINCE,COUNTRY_ID) values (3200,'Mariano Escobedo 9991','11932','Mexico City','Distrito Federal,','MX');
 
 
-      ALTER TABLE departments 
+      ALTER TABLE departments
         DROP CONSTRAINT dept_mgr_fk;
 
       Insert into HR.DEPARTMENTS (DEPARTMENT_ID,DEPARTMENT_NAME,MANAGER_ID,LOCATION_ID) values (10,'Administration',200,1700);
@@ -336,7 +336,7 @@ BEGIN
       CREATE INDEX loc_city_ix
             ON locations (city);
 
-      CREATE INDEX loc_state_province_ix      
+      CREATE INDEX loc_state_province_ix
             ON locations (state_province);
 
       CREATE INDEX loc_country_ix

@@ -1,17 +1,19 @@
 loglevel: INFO
 source:
-  postgres:
+  db:
+    type: postgres
     host: localhost
     port: 5432
-    username: postgres
-    password: fddfdfdf
-    dbname: postgres
-  qry: select first_name from employee order by first_name;
+    username: avnadmin
+    password: XmEqzi2eLWLOjgiZ
+    dbname: db1
+    qry: select first_name from employee order by first_name
 target:
-  oracle:
+  db:
+    type: oracle
     host: localhost
     port: 1521
     username: system
     password: Decathlon0147
     instance: XE
-  qry: select first_name from employee order by first_name;
+    qry: select first_name from employee order by first_name
