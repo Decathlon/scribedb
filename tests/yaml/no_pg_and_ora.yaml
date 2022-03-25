@@ -4,7 +4,7 @@ source:
     host: localhost
     port: 5432
     username: postgres
-    password: fddfdfdf
+    password: PASSWORD
     qry: select first_name from employee order by first_name;
 target:
   oracle:
@@ -12,5 +12,5 @@ target:
     init_oracle_client: "/Users/PIERRE-MARIE/Downloads/instantclient_19_8"
     port: 1521
     username: system
-    password: Decathlon0147
+    password: PASSWORD
     qry: select first_name from employee order by first_name;

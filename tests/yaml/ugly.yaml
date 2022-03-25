@@ -4,7 +4,7 @@ source:
     host: localhost
 port: 5432
     username: postgres
-    password: fddfdfdf
+    password: PASSWORD
     dbname: postgres
     qry: select first_name from employee order by first_name;
 target:
