@@ -4,3 +4,4 @@ pdoc3==0.6.3
 python-logstash-async==1.6.4
 pydantic==1.7.4
 mo-parsing==8.145.22062
+numpy==1.22.3

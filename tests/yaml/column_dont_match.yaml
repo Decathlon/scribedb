@@ -5,7 +5,7 @@ source:
     host: localhost
     port: 5432
     username: avnadmin
-    password: PASSWORD
+    password: PGPASSWORD
     dbname: db1
     sslmode: require
     qry: select first_name,employee_id from hr.employees order by first_name
@@ -16,6 +16,6 @@ target:
     host: localhost
     port: 1521
     username: system
-    password: PASSWORD
+    password: ORAPASSWORD
     service_name: XE
     qry: select first_name from hr.employees order by first_name

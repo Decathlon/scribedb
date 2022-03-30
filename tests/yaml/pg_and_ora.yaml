@@ -4,7 +4,7 @@ source:
     host: localhost
     port: 5432
     username: postgres
-    password: PASSWORD
+    password: PGPASSWORD
     dbname: postgres
     instance: XE
     qry: select first_name from employee order by first_name;
@@ -14,6 +14,6 @@ target:
     init_oracle_client: "/Users/PIERRE-MARIE/Downloads/instantclient_19_8"
     port: 1521
     username: system
-    password: PASSWORD
+    password: ORAPASSWORD
     instance: XE
     qry: select first_name from employee order by first_name;

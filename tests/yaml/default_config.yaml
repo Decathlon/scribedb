@@ -5,10 +5,10 @@ source:
     host: localhost
     port: 5432
     username: avnadmin
-    password: PASSWORD
+    password: PGPASSWORD
     dbname: db1
     sslmode: require
-    qry: select first_name,employee_id from hr.employees where first_name='Alexander' order by first_name
+    qry: select first_name,employee_id from hr.employees order by employee_id
 target:
   db:
     type: oracle
@@ -16,6 +16,6 @@ target:
     host: localhost
     port: 1521
     username: system
-    password: PASSWORD
+    password: ORAPASSWORD
     service_name: XE
-    qry: select first_name,employee_id from hr.employees where first_name='Alexander' order by first_name
+    qry: select first_name,employee_id from hr.employees order by employee_id
