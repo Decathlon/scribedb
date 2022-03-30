@@ -1,0 +1,21 @@
+loglevel: INFO
+source:
+  db:
+    type: postgres
+    host: localhost
+    port: 5432
+    username: avnadmin
+    password: PGPASSWORD
+    dbname: db1
+    sslmode: require
+    qry: select a,b,c from t_test order by a
+target:
+  db:
+    type: oracle
+    init_oracle_client: "/Users/PIERRE-MARIE/Downloads/instantclient_19_8"
+    host: localhost
+    port: 1521
+    username: system
+    password: ORAPASSWORD
+    service_name: XE
+    qry: select a,b,c from t_test order by a
