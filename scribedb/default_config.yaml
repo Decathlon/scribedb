@@ -5,7 +5,7 @@ source:
     host: localhost
     port: 5432
     username: avnadmin
-    password: PASSWORD
+    password: PGPASSWORD
     dbname: db1
     qry: select first_name from employee order by first_name
 target:
@@ -14,6 +14,6 @@ target:
     host: localhost
     port: 1521
     username: system
-    password: PASSWORD
+    password: ORAPASSWORD
     instance: XE
     qry: select first_name from employee order by first_name
