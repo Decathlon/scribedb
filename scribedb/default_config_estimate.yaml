@@ -1,5 +1,6 @@
 loglevel: INFO
 source:
+  name: src
   db:
     type: postgres
     host: localhost
@@ -10,6 +11,7 @@ source:
     sslmode: require
     qry: select a,b,c from t_test order by a
 target:
+  name: tgt
   db:
     type: oracle
     init_oracle_client: "/Users/PIERRE-MARIE/Downloads/instantclient_19_8"

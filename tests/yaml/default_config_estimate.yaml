@@ -1,21 +1,27 @@
 loglevel: INFO
 source:
+  name: src
   db:
     type: postgres
     host: localhost
-    port: 5432
-    username: avnadmin
+    port: 60901
+    username: postgres
     password: PGPASSWORD
-    dbname: db1
+    dbname: stock
     sslmode: require
-    qry: select a,b,c from t_test order by a
+#    qry: SELECT id, store, case when item=0 then null else item end as item,nature, delta,
+#      type, "user",date FROM movements.stock_movements where store in '||:listemag||'
+#      and date between date_trunc('hour',now() at time zone 'utc' - interval '30 hours')
+#      and date_trunc('hour',now() at time zone 'utc' - interval '2 hour') order by id
+
 target:
+  name: tgt
   db:
     type: oracle
     init_oracle_client: "/Users/PIERRE-MARIE/Downloads/instantclient_19_8"
     host: localhost
-    port: 1521
-    username: system
+    port: 1531
+    username: z27ppeti
     password: ORAPASSWORD
-    service_name: XE
-    qry: select a,b,c from t_test order by a
+    service_name: RE7
+    qry: select 1 from dual

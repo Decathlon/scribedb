@@ -1,13 +1,16 @@
 import logging
+import os
 import time
+from typing import Annotated, List, Literal, Optional, Union
+
 import cx_Oracle
+from mo_sql_parsing import parse, format
+from pydantic import PrivateAttr
 from rich import print as rprint
 
+from .base import DBBase
 
-from mo_sql_parsing import parse
-from typing import List
 
-ESTIMATE_LOOP = 2
 LOGGER = logging.getLogger()
 ch = logging.StreamHandler()
 formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
@@ -100,25 +103,34 @@ def log_ora_exception(err):
     LOGGER.error("code: %s", st)
 
 
-class Oracle:
+class Oracle(DBBase):
     """Oracle connection params."""
 
-    LOGGER.setLevel(getattr(logging, "INFO"))
+    init_oracle_client: str
+    type: Literal["oracle"]
+    instance: Optional[str]
+    service_name: Optional[str]
+
+    _select: str = PrivateAttr()
+    _parsed: str = PrivateAttr()
+    _cx_string: str = PrivateAttr()
+    _conn: cx_Oracle.Connection = PrivateAttr()
+    _roundtrip: str = PrivateAttr(default=ORA_ROUNDTRIP)
 
     def execquery(self, qry: str):
         start = time.time_ns()
         resultset = None
 
         try:
-            cur = self.conn.cursor()
+            cur = self._conn.cursor()
             cur.execute(qry)
             resultset = cur.fetchone()
-            self.exec_duration = (time.time_ns() - start) / 1000000
-        except self.conn.InterfaceError as exc:
+            self._exec_duration = (time.time_ns() - start) / 1000000
+        except self._conn.InterfaceError as exc:
             pass
-        except self.conn.DatabaseError as exc:
+        except self._conn.DatabaseError as exc:
             (error,) = exc.args
-            logging.error(f"""{self.dbEngine}:error executing {qry} : {error.code}""")
+            logging.error(f"""error executing {qry} : {error.code}""")
         except:
             logging.error("Error")
             raise
@@ -127,23 +139,45 @@ class Oracle:
 
         return resultset
 
-    def __init__(self, qry, view_name):
-        self._parsed = parse(qry)
-        self.qry = qry
-        self._select = self.build_select()
-        self.view_name = view_name
-        self.bucket = 0
+    def execquery_all(self, qry: str):
+        start = time.time_ns()
+        resultset = None
 
-    def prepare(self, host, port, username, password, instance, service_name):
+        try:
+            cur = self._conn.cursor()
+            cur.execute(qry)
+            resultset = list(cur.fetchall())
+            self._exec_duration = (time.time_ns() - start) / 1000000
+        except self._conn.InterfaceError as exc:
+            pass
+        except self._conn.DatabaseError as exc:
+            (error,) = exc.args
+            logging.error(f"""error executing {qry} : {error.code}""")
+        except:
+            logging.error("Error")
+            raise
+        finally:
+            cur.close()
+            self._d7 = resultset
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._parsed = parse(self.qry)
+        self._select = self.build_select()
+        self._hash_qry = f"""select smd5('('||{self._select}||')') from {self._view_name}"""
+
+    def prepare(self):
         sqlSetSession = f"""alter session set NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS'"""
         cx_Oracle.init_oracle_client(lib_dir="/Users/PIERRE-MARIE/Downloads/instantclient_19_8")
-        if service_name:
-            self.cxString = f"""{username}/{password}@{host}:{port}/{service_name}"""
+        if self.service_name:
+            self._cx_string = (
+                f"""{self.username}/{os.getenv(self.password)}@{self.host}:{self.port}/{self.service_name}"""
+            )
         else:
-            self.cxString = f"""{username}/{password}@{host}:{port}:{instance}"""
+            self._cx_string = f"""{self.username}/{os.getenv(self.password)}@{self.host}:{self.port}:{self.instance}"""
         try:
-            self.conn = cx_Oracle.connect(self.cxString)
-            self.conn.stmtcachesize = 0
+            self._conn = cx_Oracle.connect(self._cx_string)
+            self._conn.stmtcachesize = 0
         except cx_Oracle.DatabaseError as exc:
             (err,) = exc.args
             log_ora_exception(err)
@@ -156,10 +190,8 @@ class Oracle:
         # self.execquery(ORA_MD5_FN_IMPLEMENTATION)
         # self.execquery(ORA_MD5_FN)
         self.create_view()
-        self.num_rows = self.rowcount()
-
-    def drop_md5_fn(self):
-        self.execquery("fdrop function {FNAME} cascade")
+        rprint(f"{self.type} Counting rows")
+        self._num_rows = self.rowcount()
 
     def create_view(self, start: int = 0, stop: int = 0):
         """
@@ -167,105 +199,30 @@ class Oracle:
         drop the view if exists
         """
         if start != 0 or stop != 0:
-            sql = f"""create or replace view {self.view_name} as {self.qry} offset {start} rows fetch next {stop} rows only"""
+            sql = f"""create or replace view {self._view_name} as {self.qry} offset {start} rows fetch next {stop} rows only"""
         else:
-            sql = f"""create or replace view {self.view_name} as {self.qry}"""
+            sql = f"""create or replace view {self._view_name} as {self.qry}"""
 
-        self.execquery(sql)
-
-    def hash(self, start: int = 0, stop: int = 0):
-        self.create_view(start, stop)
-        sql = f"""select smd5('('||{self._select}||')') from {self.view_name}"""
-        tmp = self.execquery(sql)
-        self._computed_hash = tmp[0]
-
-    def explain(self, qry):
-        ret = 0
-        st = self.execquery(qry)
-        if st[0] != None:
-            ret = self.exec_duration
-        else:
-            raise ValueError(f"""Returned value is null.""") from Exception
-        return ret
-
-    def estimate_execution(self, qry_exec_time):
-        """time = a.rows + round_trip
-        rows = (time - (round_trip))/a
-        """
-
-        round_trip = 0
-        time = 0
-        rows = 0
-        for i in range(ESTIMATE_LOOP):
-            rprint(f"Ora: Estimating round_trip")
-            round_trip = round_trip + self.explain(ORA_ROUNDTRIP)
-        round_trip = round_trip / ESTIMATE_LOOP
-        for j in range(ESTIMATE_LOOP):
-            r = (j + 1) + j * 100 - 2 * j
-            self.create_view(0, r)
-            for i in range(ESTIMATE_LOOP):
-                sql = f"""select smd5('('||{self._select}||')') from {self.view_name}"""
-                rprint(f"Ora: Estimating for {r} rows")
-                time = time + self.explain(sql)
-                rows = rows + r
-
-        tx = time / rows
-        bucket = round((qry_exec_time - round_trip) / tx)
-
-        # LOGGER.info(f"""Estimation of [{bucket}] rows could be computed in [{qry_exec_time}ms]""")
-
-        self.create_view(0, bucket)
-        sql = f"""select smd5('('||{self._select}||')') from {self.view_name}"""
-        runtime = self.explain(sql)
-
-        while runtime < (qry_exec_time - 20 * qry_exec_time / 100):
-            if bucket >= self.num_rows // 2:
-                break
-            bucket = round(bucket * 2)
-            self.create_view(0, bucket)
-            sql = f"""select smd5('('||{self._select}||')') from {self.view_name}"""
-            runtime = self.explain(sql)
-
-        #    LOGGER.info(f"""Effective [{bucket}] rows are computed in [{runtime}ms]""")
-
-        self.bucket = bucket
-
-    def computed_hash(self):
-        return self._computed_hash
-
-    def drop_view(self):
-        """
-        create temporary view to be able to get the datatype for cast
-        drop the view if exists
-        """
-
-        sql = f"""drop view {self.view_name}"""
         self.execquery(sql)
 
     def build_select(self):
         tmp = self._parsed["select"]
         # case when instr(first_name,' ')>0 then '"'||first_name||'"' else ''||first_name||'' end as first_name
         #'\'||case when instr(first_name,\' \')>0 then "||first_name||" else ||first_name|| end as ||first_name||||\',\'||case when instr(employee_id,\' \')>0 then "||employee_id||" else ||employee_id|| end as ||employee_id||||\''
-        if isinstance(tmp, List):
-            st_field = ""
-            for field in tmp:
-                st_field = st_field + field["value"] + "||','||"
-            st = st_field.rstrip("','||")  #
-        else:
-            st = "'||" + tmp["value"] + "||'"
+        try:
+            if isinstance(tmp, List):
+                st_field = ""
+                for field in tmp:
+                    cname = field["value"]
+                    try:
+                        cname=field["name"]
+                    except:
+                        pass
+                    st_field = st_field + cname + "||','||"
+                st = st_field.rstrip("','||")  #
+            else:
+                st = "'||" + tmp["value"] + "||'"
+        except:
+            raise ValueError(f"""Error building oracle select.""") from Exception
 
         return st
-
-    def rowcount(self):
-        """
-        create temporary view to be able to get the datatype for cast
-        drop the view if exists
-        """
-
-        sql = f"""select count(*) from {self.view_name}"""
-        ret = self.execquery(sql)
-        return ret[0]
-
-    def close(self):
-        self.drop_view()
-        self.conn.close()

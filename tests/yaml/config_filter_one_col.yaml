@@ -1,5 +1,6 @@
 loglevel: INFO
 source:
+  name: src_name
   db:
     type: postgres
     host: localhost
@@ -10,6 +11,7 @@ source:
     sslmode: require
     qry: select first_name from hr.employees where first_name='Jose Manuel' order by first_name
 target:
+  name: tgt_name
   db:
     type: oracle
     init_oracle_client: "/Users/PIERRE-MARIE/Downloads/instantclient_19_8"
