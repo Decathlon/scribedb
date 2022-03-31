@@ -1,19 +1,68 @@
 loglevel: INFO
 source:
+  name: src
   db:
     type: postgres
     host: localhost
-    port: 5432
-    username: avnadmin
+    port: 60901
+    username: postgres
     password: PGPASSWORD
-    dbname: db1
-    qry: select first_name from employee order by first_name
+    dbname: stock
+    qry:
+      SELECT id, store, case when item=0 then null else item end as item,nature, delta,
+      type, "user",date FROM movements.stock_movements where store in (1,49,65,76,144,195,228,230,334,379,427,443,446,463,470,525,543,575,613,645,646,648,649,650,664,759,785,795,823,829,833,876,900,978,1122,1170,1310,1383,1507,1519,1539,1540,1550,1551,1552,1612,1699,1700,1870,1880,1899,1915,1916,1946,1963,1989,1991,2055,2110,2121,2207,2212,2319,2332,2540,2626,2627,2628,2629,2635,2685,2707,2717,2857,2878,3002)
+      and date between date_trunc('hour',now() at time zone 'utc' - interval '30 hours')
+      and date_trunc('hour',now() at time zone 'utc' - interval '2 hour') order by id
 target:
+  name: tgt
   db:
     type: oracle
+    init_oracle_client: "/Users/PIERRE-MARIE/Downloads/instantclient_19_8"
     host: localhost
-    port: 1521
-    username: system
+    port: 1531
+    username: z27ppeti
     password: ORAPASSWORD
-    instance: XE
-    qry: select first_name from employee order by first_name
+    service_name: RE7
+    qry: with cte as (select
+      a.msk_id,
+      a.tir_num_tiers_tir,
+      a.tir_sous_num_tiers_tir,
+      a.tti_num_type_tiers_tir,
+      to_number(FST_ARTICLE_R3) FST_ARTICLE_R3,
+      a.nmv_code_nature_mouvement_nmv,
+      a.msk_quantite*NMV_SIGNE_IMPACT_STOCK as delta,
+      a.tys_type_stock_tys,
+      a.msk_user,
+      a.msk_date_ecriture,
+      case
+      when lower(tz.tzo_timezone_id_reel) = 'america/sao_paulo' then '-03:00'
+      when lower(tz.tzo_timezone_id_reel) = 'africa/cairo' then '+02:00'
+      when lower(tz.tzo_timezone_id_reel) = 'europe/moscow' then '+03:00'
+      when lower(tz.tzo_timezone_id_reel) = 'europe/istanbul' then '+03:00'
+      when lower(tz.tzo_timezone_id_reel) = 'africa/casablanca' and a.msk_date_ecriture between to_date('11/04/2021 03:00:00','DD/MM/YYYY HH24:MI:SS') and to_date('16/05/2021 02:00:00','DD/MM/YYYY HH24:MI:SS')  then '+00:00'
+      when lower(tz.tzo_timezone_id_reel) = 'africa/casablanca' and a.msk_date_ecriture between to_date('27/03/2022 03:00:00','DD/MM/YYYY HH24:MI:SS') and to_date('08/05/2022 02:00:00','DD/MM/YYYY HH24:MI:SS')  then '+00:00'
+      when lower(tz.tzo_timezone_id_reel) = 'africa/casablanca' then '+01:00'
+      when lower(tz.tzo_timezone_id_reel) = 'america/santiago' and a.msk_date_ecriture between to_date('04/04/2021 00:00:00','DD/MM/YYYY HH24:MI:SS') and to_date('05/09/2021 00:00:00','DD/MM/YYYY HH24:MI:SS')  then '-04:00'
+      when lower(tz.tzo_timezone_id_reel) = 'america/santiago' and a.msk_date_ecriture between to_date('03/04/2022 00:00:00','DD/MM/YYYY HH24:MI:SS') and to_date('04/09/2022 00:00:00','DD/MM/YYYY HH24:MI:SS')  then '-04:00'
+      when lower(tz.tzo_timezone_id_reel) = 'america/santiago' then '-03:00'
+      else tz.tzo_timezone_id_reel
+      end as tz_fixed
+      from stcom.mouvement_stock a
+      inner join masterdatas.flat_structure b on
+      a.elg_num_elt_gestion_elg = b.elg_num_elt_gestion_elg
+      inner join stcom.nature_mouvement c on c.nmv_code_nature_mouvement = a.nmv_code_nature_mouvement_nmv
+      inner join masterdatas.element_gestion eg on a.elg_num_elt_gestion_elg=eg.elg_num_elt_gestion
+      inner join STCOM.timezone_tiers tz on tz.tir_num_tiers_tir=a.tir_num_tiers_tir and
+      tz.tir_sous_num_tiers_tir=a.tir_sous_num_tiers_tir and
+      tz.tti_num_type_tiers_tir=a.tti_num_type_tiers_tir
+      where msk_date_ecriture>=trunc(sysdate-2*30/24)  and msk_flag_stock IN (1, 2) and eg.nat_num_nature_nat=2)
+      select msk_id,
+      cte.tir_num_tiers_tir,
+      FST_ARTICLE_R3,
+      nmv_code_nature_mouvement_nmv,
+      delta,
+      tys_type_stock_tys,
+      msk_user,
+      sys_extract_utc(from_tz(cast(MSK_DATE_ECRITURE as timestamp),cte.tz_fixed)) as msk_date_ecriture
+      from cte cte
+      where sys_extract_utc(from_tz(cast(MSK_DATE_ECRITURE as timestamp),cte.tz_fixed)) between trunc(sys_extract_utc(systimestamp)-30/24,'HH') and trunc(sys_extract_utc(systimestamp)-2/24,'HH') order by msk_id
