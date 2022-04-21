@@ -152,7 +152,7 @@ class Compare(BaseModel):
     loglevel: str
     max_delta: Optional[int]
 
-    _errors: int = PrivateAttr(default=0)
+
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
