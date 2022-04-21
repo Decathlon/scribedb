@@ -16,7 +16,7 @@ from scribedb.configuration import Configuration
 from scribedb.oracle import Oracle
 from scribedb.postgres import Postgres
 
-QRY_EXECUTION_TIME = 1000
+QRY_EXECUTION_TIME = 25000
 
 LOGGER = logging.getLogger()
 ch = logging.StreamHandler()
@@ -152,12 +152,13 @@ class Compare(BaseModel):
     loglevel: str
     max_delta: Optional[int]
 
-    _errors: int = PrivateAttr(default=0)
+
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         source_colcount = self.source.db.colcount()
         target_colcount = self.target.db.colcount()
+        _errors: int = 0
 
         if (source_colcount != target_colcount) and target_colcount > 0:
             rprint(
@@ -191,10 +192,10 @@ class Compare(BaseModel):
         # LOGGER.info("source hashing: %s rows", self.source.db.rowcount())
         # LOGGER.info("target hashing: %s rows", self.target.db.rowcount())
         rprint(
-            f"{self.source.name} can hash ({self.source.db.get_bucket()}) rows in {QRY_EXECUTION_TIME}ms num_rows:{self.source.db.rowcount()}"
+            f"{self.source.name} can hash ({self.source.db.get_bucket()}) rows in {QRY_EXECUTION_TIME}ms num_rows:{self.source.db.get_d7_num_rows()}"
         )
         rprint(
-            f"{self.target.name} can hash ({self.target.db.get_bucket()}) rows in {QRY_EXECUTION_TIME}ms num_rows:{self.target.db.rowcount()}"
+            f"{self.target.name} can hash ({self.target.db.get_bucket()}) rows in {QRY_EXECUTION_TIME}ms num_rows:{self.target.db.get_d7_num_rows()}"
         )
 
         # source_hash_thread = Thread(target=self.source.db.hash())

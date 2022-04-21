@@ -11,8 +11,8 @@ from pydantic import BaseModel, Field, PrivateAttr
 PREFIX = "scdb_"
 ASCII_LETTER = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 ROW_LIMIT = 50
-QRY_EXECUTION_TIME = 1000
-ESTIMATE_LOOP = 2
+#QRY_EXECUTION_TIME = 5000
+ESTIMATE_LOOP = 3
 
 
 def random_char(y):
@@ -30,21 +30,18 @@ class DBBase(BaseModel):
     qry: str
 
     _view_name: str = PrivateAttr(default="scdb_test")  # random_char(20))
-    _qry_exec_time: int = PrivateAttr(default=QRY_EXECUTION_TIME)
+#    _qry_exec_time: int = PrivateAttr(default=QRY_EXECUTION_TIME)
     _bucket: int = PrivateAttr(default=0)
     _num_rows: int = PrivateAttr(default=0)
     _exec_duration: int = PrivateAttr(default=0)
     _computed_hash: str = PrivateAttr(default="")
     _hash_qry: str = PrivateAttr()
 
-
     _d7: list = PrivateAttr(default=[])
-
 
     # def __init__(self, name):
     #     super().__init__(name)
     #     self._name=name
-
 
     def colcount(self):
         return len(parse(self.qry)["select"])

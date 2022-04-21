@@ -112,8 +112,8 @@ class Postgres(DBBase):
         self.execquery(str(PG_MD5_AGG))
         self._conn.commit()
         self.create_view()
-        rprint(f"{self.type} Counting rows")
         self._num_rows = self.rowcount()
+        rprint(f"{self.type} Counting rows:{self._num_rows}")
 
     def drop_md5_fn(self):
         self.execquery(f"drop function {PG_FNAME} cascade")

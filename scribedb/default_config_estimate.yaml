@@ -4,8 +4,8 @@ source:
   db:
     type: postgres
     host: localhost
-    port: 5432
-    username: avnadmin
+    port: 6432
+    username: postgres
     password: PGPASSWORD
     dbname: db1
     sslmode: require

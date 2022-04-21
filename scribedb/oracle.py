@@ -190,8 +190,8 @@ class Oracle(DBBase):
         # self.execquery(ORA_MD5_FN_IMPLEMENTATION)
         # self.execquery(ORA_MD5_FN)
         self.create_view()
-        rprint(f"{self.type} Counting rows")
         self._num_rows = self.rowcount()
+        rprint(f"{self.type} Counting rows:{self._num_rows}")
 
     def create_view(self, start: int = 0, stop: int = 0):
         """
@@ -215,7 +215,7 @@ class Oracle(DBBase):
                 for field in tmp:
                     cname = field["value"]
                     try:
-                        cname=field["name"]
+                        cname = field["name"]
                     except:
                         pass
                     st_field = st_field + cname + "||','||"
