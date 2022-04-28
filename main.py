@@ -16,7 +16,7 @@ from scribedb.configuration import Configuration
 from scribedb.oracle import Oracle
 from scribedb.postgres import Postgres
 
-QRY_EXECUTION_TIME = 25000
+QRY_EXECUTION_TIME = 5000
 
 LOGGER = logging.getLogger()
 ch = logging.StreamHandler()

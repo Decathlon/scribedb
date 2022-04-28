@@ -3,7 +3,7 @@ CREATE OR REPLACE FUNCTION md5_agg_sfunc(text, anyelement)
  SELECT md5($1 || $2::text)
 $$;
 
-CREATE OR REPLACE AGGREGATE md5_agg (ORDER BY anyelement) (
+CREATE AGGREGATE md5_agg (ORDER BY anyelement) (
  STYPE = text,
  SFUNC = md5_agg_sfunc,
  INITCOND = ''
@@ -12,7 +12,7 @@ CREATE OR REPLACE AGGREGATE md5_agg (ORDER BY anyelement) (
 
 DROP TABLE t_test cascade;
 
-CREATE TABLE t_test (a int, b int, c text);
+CREATE TABLE t_test (a int, b int, c text, d text, e text);
 
 INSERT INTO t_test SELECT x, x + 10,'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' FROM generate_series(1, 4000000) AS x;
 
