@@ -18,7 +18,7 @@ formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
-PG_ROUNDTRIP = "select 1"
+PG_ROUNDTRIP = "select 1;"
 
 PG_FNAME = "md5_agg_sfunc"
 PG_MD5_FN = f"""CREATE or replace FUNCTION {PG_FNAME}(text, anyelement)

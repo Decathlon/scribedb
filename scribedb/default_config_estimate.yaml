@@ -4,10 +4,10 @@ source:
   db:
     type: postgres
     host: localhost
-    port: 6432
+    port: 5432
     username: postgres
     password: PGPASSWORD
-    dbname: db1
+    dbname: postgres
     sslmode: require
     qry: select a,b,c from t_test order by a
 target:
