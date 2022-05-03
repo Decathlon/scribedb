@@ -51,9 +51,8 @@ class DBBase(BaseModel):
 
     _d7: list = PrivateAttr(default=[])
 
-    def log_exception(err):
-        st = err.message
-        LOGGER.error("\ora ERROR: %s", st)
+    def log_exception(self, err):
+        LOGGER.error("\ora ERROR: %s", err)
         st = err.code
         LOGGER.error("code: %s", st)
 

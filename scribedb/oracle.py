@@ -14,7 +14,7 @@ from .base import DBBase
 
 ORA_ROUNDTRIP = "select 1 from dual"
 
-ORA_FNAME = "test_md5agg_clob_t"
+ORA_FNAME = "md5agg_clob_t"
 ORA_MD5_FN_TYPE = f"""
 create or replace type {ORA_FNAME} as object(
     v_md5 raw(16),
@@ -128,7 +128,7 @@ class Oracle(DBBase):
             + "/?service_name="
             + SERVICE
         )
-        cx_Oracle.init_oracle_client(lib_dir="/Users/PIERRE-MARIE/Downloads/instantclient_19_8")
+        cx_Oracle.init_oracle_client(lib_dir=f"{self.init_oracle_client}")
         try:
             _engine = create_engine(sqlUrl)
         except Exception as err:
@@ -150,6 +150,10 @@ class Oracle(DBBase):
         self.create_view()
         self._num_rows = self.rowcount()
         rprint(f"{self.type} Counting rows:{self._num_rows}")
+
+    def drop(self):
+        self.execquery(f"drop type {ORA_FNAME}")
+        self.execquery(f"drop function smd5")
 
     def create_view(self, start: int = 0, stop: int = 0):
         """

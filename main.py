@@ -257,14 +257,16 @@ class Compare(BaseModel):
         # LOGGER.info("source hashed: [%s]", source_hash)
         # LOGGER.info("target hashed: [%s]", target_hash)
 
+        self.source.db.drop()
+        self.target.db.drop()
         self.source.db.close()
         self.target.db.close()
 
         if _errors != 0:
-            rprint("[bold red]Dataset are different")
-            raise ValueError(f"""Dataset are different.""") from Exception
+            rprint("[bold red]Datasets are different")
+            raise ValueError(f"""Datasets are different.""") from Exception
         else:
-            rprint("[bold blue]Dataset are identicals")
+            rprint("[bold blue]Datasets are identicals")
 
 
 def main():

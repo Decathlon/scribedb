@@ -69,8 +69,12 @@ class Postgres(DBBase):
         self._num_rows = self.rowcount()
         rprint(f"{self.type} Counting rows:{self._num_rows}")
 
-    def drop_md5_fn(self):
-        self.execquery(f"drop function {PG_FNAME} cascade")
+    def drop(self):
+        self.execquery(f"drop AGGREGATE md5_agg (ORDER BY anyelement) cascade")
+        try:
+            self.execquery(f"drop function if exists {PG_FNAME}")
+        except Exception:
+            pass
 
     def create_view(self, start: int = 0, stop: int = 0):
         """
@@ -83,6 +87,3 @@ class Postgres(DBBase):
         else:
             sql = stmt
         self.execquery(sql)
-
-    def create_test_table(self):
-        self.execquery(CREATE_TEST)
