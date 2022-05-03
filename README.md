@@ -15,24 +15,17 @@ tgt:(50, 60, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNO')
 Dataset are different
 ```
 
-Today, postgresql and oracle databases are supported. 
+Today, postgresql and oracle databases are supported.
 
 Here a global concept overview: [Scribedb in gdoc](https://docs.google.com/presentation/d/1fm95I4YT40y5ZUj8Yaqxk-MaZO0ILIwpwGKuuNAk3JY/edit?usp=sharing)
 
 ## Getting Started
 
-You can check the [example](example.md).
-
-If you want to launch scribedb you can also use the docker image:
-
-```bash
-# We assume the configuration file in /working/dir/config.yaml reference the password DB1_PASS and DB2_PASS 
-$ docker run --rm -v /working/dir/config.yaml:/config.yaml -e DB1_PASS=xxxxx -e DB2_PASS=xxxxx decathlon/scribedb:2.0 -f /config.yaml
-```
+you can see in example.md file.
 
 ## Contributing
 
-New features are always welcome (but first, you should open an issue to discuss new idea)   
+New features are always welcome (but first, you should open an issue to discuss new idea)
 Please read [contributing](CONTRIBUTING.md) and our [code of conduct](CODE_OF_CONDUCT.md), to check the process for submitting improvements/new features.
 
 ## Versioning
@@ -53,13 +46,13 @@ See also the list of [contributors](CONTRIBUTORS.md) who participated in this pr
 ## License
 
 > Copyright 2019-2022 Decathlon.
-> 
+>
 > Licensed under the Apache License, Version 2.0 (the "License");
 > you may not use this file except in compliance with the License.
 > You may obtain a copy of the License at
-> 
+>
 >    http://www.apache.org/licenses/LICENSE-2.0
-> 
+>
 > Unless required by applicable law or agreed to in writing, software
 > distributed under the License is distributed on an "AS IS" BASIS,
 > WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
