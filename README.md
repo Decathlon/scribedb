@@ -7,7 +7,7 @@ Global Concept [Scribedb in gdoc](https://docs.google.com/presentation/d/1fm95I4
 
 ## Getting Started
 
-Clone the project, it comes with an example directory. This example will create 3 containers (Postgres,Oracle,Scribedb) and will compare data bewteen dbs.
+you can see in example.md file.
 
 ## Contributing
 
@@ -15,11 +15,11 @@ Please read CONTRIBUTING.md for details on our code of conduct, and the process 
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/dktunited/scribedb/tags). 
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/dktunited/scribedb/tags).
 
 ## Authors
 
-* **Pierre-Marie Petit** - *Initial work* 
+* **Pierre-Marie Petit** - *Initial work*
 
 See also the list of contributors who participated in this project.
 
