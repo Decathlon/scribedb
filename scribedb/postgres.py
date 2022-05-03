@@ -3,20 +3,13 @@ import os
 import time
 from typing import Annotated, List, Literal, Optional, Union
 
-from mo_sql_parsing import format, parse
-from psycopg2 import Error, InterfaceError, connect
-from psycopg2.extensions import connection
+from sqlalchemy import create_engine
+from sqlalchemy.engine.url import URL
+
 from pydantic import PrivateAttr
 from rich import print as rprint
 
 from .base import DBBase
-
-
-LOGGER = logging.getLogger()
-ch = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-ch.setFormatter(formatter)
-LOGGER.addHandler(ch)
 
 PG_ROUNDTRIP = "select 1;"
 
@@ -37,13 +30,6 @@ PG_MD5_AGG = f"""CREATE or replace AGGREGATE md5_agg (ORDER BY anyelement)
 )"""
 
 
-def log_psycopg2_exception(err):
-    st = str(err)
-    LOGGER.error("\npsycopg2 ERROR: %s", st)
-    st = str(err.pgcode)
-    LOGGER.error("pgcode: %s", st)
-
-
 class Postgres(DBBase):
     """Postgres connection params."""
 
@@ -51,40 +37,7 @@ class Postgres(DBBase):
     dbname: str
     sslmode: Optional[str]
 
-    _conn: connection = PrivateAttr()
     _roundtrip: str = PrivateAttr(default=PG_ROUNDTRIP)
-
-    def execquery(self, qry: str):
-        start = time.time_ns()
-        resultset = None
-        try:
-            cur = self._conn.cursor()
-            cur.execute(qry)
-            if cur.rowcount > 0:
-                resultset = cur.fetchone()
-            cur.close()
-            self._exec_duration = (time.time_ns() - start) / 1000000
-            return resultset
-        except (Error, InterfaceError) as err:
-            self.close()
-            log_psycopg2_exception(err)
-            raise
-
-    def execquery_all(self, qry: str):
-        start = time.time_ns()
-        resultset = None
-        try:
-            cur = self._conn.cursor()
-            cur.execute(qry)
-            if cur.rowcount > 0:
-                resultset = cur.fetchall()
-            cur.close()
-            self._exec_duration = (time.time_ns() - start) / 1000000
-        except (Error, InterfaceError) as err:
-            self.close()
-            log_psycopg2_exception(err)
-            raise
-        self._d7 = resultset
 
     def get_dataset(self):
         return self._d7
@@ -92,25 +45,26 @@ class Postgres(DBBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._hash_qry = f"""SELECT md5_agg() WITHIN GROUP (ORDER BY {self._view_name}) FROM {self._view_name}"""
+        sqlUrl = URL.create(
+            drivername="postgresql+psycopg2",
+            username=self.username,
+            password=os.getenv(self.password),
+            host=self.host,
+            port=self.port,
+            database=self.dbname,
+            # sslmode=self.sslmode,
+        )
+        try:
+            _engine = create_engine(sqlUrl)
+        except Exception as err:
+            self.log_exception(err)
+            self._engine = None
+            raise
+        self._conn = _engine.connect()
 
     def prepare(self):
-        try:
-            self._conn = connect(
-                dbname=self.dbname,
-                user=self.username,
-                password=os.getenv(self.password),
-                host=self.host,
-                port=self.port,
-                sslmode=self.sslmode,
-            )
-            self._conn.autocommit = True
-        except Exception as err:
-            log_psycopg2_exception(err)
-            self._conn = None
-            raise
         self.execquery(str(PG_MD5_FN))
         self.execquery(str(PG_MD5_AGG))
-        self._conn.commit()
         self.create_view()
         self._num_rows = self.rowcount()
         rprint(f"{self.type} Counting rows:{self._num_rows}")
@@ -129,4 +83,6 @@ class Postgres(DBBase):
         else:
             sql = stmt
         self.execquery(sql)
-        self._conn.commit()
+
+    def create_test_table(self):
+        self.execquery(CREATE_TEST)

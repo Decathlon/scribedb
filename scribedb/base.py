@@ -7,17 +7,27 @@ from rich import print as rprint
 
 from mo_sql_parsing import parse
 from pydantic import BaseModel, Field, PrivateAttr
+from sqlalchemy.engine.base import Connection
+
+
 
 PREFIX = "scdb_"
 ASCII_LETTER = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 ROW_LIMIT = 50
-#QRY_EXECUTION_TIME = 5000
+# QRY_EXECUTION_TIME = 5000
 ESTIMATE_LOOP = 3
 
 
 def random_char(y):
     tmp = "".join(random.choice(ASCII_LETTER) for x in range(y))
     return PREFIX + tmp
+
+
+LOGGER = logging.getLogger()
+ch = logging.StreamHandler()
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+ch.setFormatter(formatter)
+LOGGER.addHandler(ch)
 
 
 class DBBase(BaseModel):
@@ -30,18 +40,35 @@ class DBBase(BaseModel):
     qry: str
 
     _view_name: str = PrivateAttr(default="scdb_test")  # random_char(20))
-#    _qry_exec_time: int = PrivateAttr(default=QRY_EXECUTION_TIME)
+    #    _qry_exec_time: int = PrivateAttr(default=QRY_EXECUTION_TIME)
     _bucket: int = PrivateAttr(default=0)
     _num_rows: int = PrivateAttr(default=0)
     _exec_duration: int = PrivateAttr(default=0)
     _computed_hash: str = PrivateAttr(default="")
     _hash_qry: str = PrivateAttr()
 
+    _conn: Connection = PrivateAttr()
+
     _d7: list = PrivateAttr(default=[])
 
-    # def __init__(self, name):
-    #     super().__init__(name)
-    #     self._name=name
+    def log_exception(err):
+        st = err.message
+        LOGGER.error("\ora ERROR: %s", st)
+        st = err.code
+        LOGGER.error("code: %s", st)
+
+    def execquery(self, qry: str):
+        start = time.time_ns()
+        resultset = None
+        try:
+            result = self._conn.execute(qry)
+            if result.returns_rows:
+                resultset = result.fetchall()
+            self._exec_duration = (time.time_ns() - start) / 1000000
+            return resultset
+        except Exception as err:
+            self.log_exception(err)
+            raise
 
     def colcount(self):
         return len(parse(self.qry)["select"])
@@ -66,7 +93,7 @@ class DBBase(BaseModel):
 
         sql = f"""select count(*) from {self._view_name}"""
         ret = self.execquery(sql)
-        return ret[0]
+        return ret[0][0]
 
     def drop_view(self):
         """
@@ -128,11 +155,11 @@ class DBBase(BaseModel):
     def hash(self, start=0, stop=0):
         self.create_view(start, stop)
         tmp = self.execquery(self._hash_qry)
-        self._computed_hash = tmp[0]
+        self._computed_hash = tmp[0][0]
 
     def retreive_dataset(self):
         sql = f"""select * from {self._view_name}"""
-        self.execquery_all(sql)
+        self._d7=self.execquery(sql)
 
     def get_dataset(self):
         return self._d7

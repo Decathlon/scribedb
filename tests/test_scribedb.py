@@ -1,12 +1,44 @@
 import os
-
+import sqlalchemy
+import cx_Oracle
 from unittest import TestCase
+from testcontainers.postgres import PostgresContainer
+from testcontainers.oracle import OracleDbContainer
+
 
 from main import Compare
 from scribedb.configuration import Configuration
 
 
 PATH = f"{os.path.dirname(__file__)}/yaml"
+SQLPATH = f"{os.path.dirname(__file__)}/scripts"
+
+
+def exec_qry(e, sql):
+    try:
+        qry = "create database db1"
+        conn = e.connect()
+        conn.execution_options(isolation_level="AUTOCOMMIT").execute(sql)
+    except Exception as err:
+        print(err)
+
+def prepare_test(e,url):
+    exec_qry(e, "create database db2")
+    exec_qry(
+        e,
+        f"""DROP TABLE if exists t_test cascade;
+            CREATE TABLE t_test (a int, b int, c text);
+            INSERT INTO t_test SELECT x, x + 10,'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' FROM generate_series(1, 50000) AS x;
+            """,
+    )
+    e = sqlalchemy.create_engine(url.replace("db1", "db2"))
+    exec_qry(
+        e,
+        f"""DROP TABLE if exists t_test cascade;
+            CREATE TABLE t_test (a int, b int, c text);
+            INSERT INTO t_test SELECT x, x + 10,'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' FROM generate_series(1, 50000) AS x;
+            """,
+    )
 
 
 class TestScribedb(TestCase):
@@ -24,54 +56,34 @@ class TestScribedb(TestCase):
         raw = config_file.json_config(filename)
         self.assertRaises(Exception, Compare.parse_raw, raw)
 
-    def test_is_ok_config_filter(self):
+    def test_is_ok_with_2_pg(self):
         config_file = Configuration()
-        filename = f"{PATH}/config_filter.yaml"
+        filename = f"{PATH}/2_pg_config.yaml"
         raw = config_file.json_config(filename)
-        compare = Compare.parse_raw(raw)
-        self.assertEqual(compare.source.db.type, "postgres")
-        self.assertEqual(compare.target.db.type, "oracle")
-        self.assertEqual(compare.source.rowcount(), 2)
-        self.assertEqual(compare.target.rowcount(), 2)
-        self.assertEqual(compare.target.computed_hash, compare.source.computed_hash)
+        with PostgresContainer(port=5432, dbname="db1") as pg1:
+            url = pg1.get_connection_url()
+            e = sqlalchemy.create_engine(url)
+            prepare_test(e,url)
+            port = pg1.get_exposed_port("5432")
+            raw = raw.replace("5432", port)
+            compare = Compare.parse_raw(raw)
+            self.assertEqual(compare.source.db.type, "postgres")
+            self.assertEqual(compare.target.db.type, "postgres")
+            self.assertIsNotNone(compare.target.db.computed_hash())
+            self.assertEqual(compare.target.db.computed_hash(), compare.source.db.computed_hash())
+            self.assertTrue(Compare.parse_raw, raw)
 
-    def test_is_ok_config_filter_one_col(self):
+    def test_is_nok_with_2_pg(self):
         config_file = Configuration()
-        filename = f"{PATH}/config_filter_one_col.yaml"
+        filename = f"{PATH}/2_pg_config.yaml"
         raw = config_file.json_config(filename)
-        compare = Compare.parse_raw(raw)
-        self.assertEqual(compare.source.db.type, "postgres")
-        self.assertEqual(compare.target.db.type, "oracle")
-        self.assertEqual(compare.source.rowcount(), 2)
-        self.assertEqual(compare.target.rowcount(), 2)
-        self.assertEqual(compare.target.computed_hash, compare.source.computed_hash)
-
-    def test_is_nok_default_config(self):
-        config_file = Configuration()
-        filename = f"{PATH}/default_config.yaml"
-        raw = config_file.json_config(filename)
-
-        compare = Compare.parse_raw(raw)
-        self.assertEqual(compare.source.db.type, "postgres")
-        self.assertEqual(compare.target.db.type, "oracle")
-        self.assertEqual(compare.source.rowcount(), 107)
-        self.assertEqual(compare.target.rowcount(), 108)
-        self.assertNotEqual(compare.target.computed_hash, compare.source.computed_hash)
-        self.assertRaises(Exception, Compare.parse_raw, raw)
-
-    def test_is_nok_default_estimate(self):
-        config_file = Configuration()
-        filename = f"{PATH}/default_config_estimate.yaml"
-        raw = config_file.json_config(filename)
-
-        compare = Compare.parse_raw(raw)
-        self.assertEqual(compare.source.db.type, "postgres")
-        self.assertEqual(compare.target.db.type, "oracle")
-        self.assertEqual(compare.source.rowcount(), 107)
-        self.assertEqual(compare.target.rowcount(), 108)
-        self.assertNotEqual(compare.target.computed_hash, compare.source.computed_hash)
-        self.assertRaises(Exception, Compare.parse_raw, raw)
-
+        with PostgresContainer(port=5432, dbname="db1") as pg1:
+            url = pg1.get_connection_url()
+            e = sqlalchemy.create_engine(url)
+            prepare_test(e,url)
+            port = pg1.get_exposed_port("5432")
+            raw = raw.replace("5432", port)
+            self.assertRaises(Exception, Compare.parse_raw, raw)
 
     def test_nb_column_is_different(self):
         config_file = Configuration()

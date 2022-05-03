@@ -1,13 +1,14 @@
 loglevel: INFO
+test: true
 source:
   name: src
   db:
     type: postgres
     host: localhost
     port: 5432
-    username: postgres
+    username: test
     password: PGPASSWORD
-    dbname: postgres
+    dbname: db1
     qry: select a,b,c from t_test order by a
 target:
   name: tgt

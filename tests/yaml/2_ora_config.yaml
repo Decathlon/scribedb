@@ -1,15 +1,16 @@
 loglevel: INFO
+test: true
 source:
   name: src
   db:
-    type: postgres
+    type: oracle
+    init_oracle_client: "/Users/PIERRE-MARIE/Downloads/instantclient_19_8"
     host: localhost
-    port: 5432
-    username: avnadmin
-    password: PGPASSWORD
-    dbname: db1
-    sslmode: require
-    qry: select first_name,employee_id from hr.employees order by employee_id
+    port: 1521
+    username: system
+    password: ORAPASSWORD
+    service_name: XE
+    qry: select a,b,c from t_test_1 order by a
 target:
   name: tgt
   db:
@@ -20,4 +21,4 @@ target:
     username: system
     password: ORAPASSWORD
     service_name: XE
-    qry: select first_name,employee_id from hr.employees order by employee_id
+    qry: select a,b,c from t_test_2 order by a
