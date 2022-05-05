@@ -93,8 +93,7 @@ class Oracle(DBBase):
 
     init_oracle_client: str
     type: Literal["oracle"]
-    instance: Optional[str]
-    service_name: Optional[str]
+    service_name: str
 
     _select: str = PrivateAttr()
     _parsed: str = PrivateAttr()
@@ -151,7 +150,7 @@ class Oracle(DBBase):
         self._num_rows = self.rowcount()
         rprint(f"{self.type} Counting rows:{self._num_rows}")
 
-    def drop(self):
+    def drop_objects(self):
         self.execquery(f"drop type {ORA_FNAME}")
         self.execquery(f"drop function smd5")
 
@@ -160,17 +159,16 @@ class Oracle(DBBase):
         create temporary view to be able to get the datatype for cast
         drop the view if exists
         """
+        stmt = f"""create or replace view {self._view_name} as {self.qry}"""
         if start != 0 or stop != 0:
-            sql = f"""create or replace view {self._view_name} as {self.qry} offset {start} rows fetch next {stop} rows only"""
+            sql = stmt + f" offset {start} rows fetch next {stop} rows only"
         else:
-            sql = f"""create or replace view {self._view_name} as {self.qry}"""
+            sql = stmt
 
         self.execquery(sql)
 
     def build_select(self):
         tmp = self._parsed["select"]
-        # case when instr(first_name,' ')>0 then '"'||first_name||'"' else ''||first_name||'' end as first_name
-        #'\'||case when instr(first_name,\' \')>0 then "||first_name||" else ||first_name|| end as ||first_name||||\',\'||case when instr(employee_id,\' \')>0 then "||employee_id||" else ||employee_id|| end as ||employee_id||||\''
         try:
             if isinstance(tmp, List):
                 st_field = ""

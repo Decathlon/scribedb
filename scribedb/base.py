@@ -10,7 +10,6 @@ from pydantic import BaseModel, Field, PrivateAttr
 from sqlalchemy.engine.base import Connection
 
 
-
 PREFIX = "scdb_"
 ASCII_LETTER = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 ROW_LIMIT = 50
@@ -103,6 +102,9 @@ class DBBase(BaseModel):
         sql = f"""drop view {self._view_name}"""
         self.execquery(sql)
 
+    def drop_objects(self):
+        pass
+
     def estimate_bucket_size(self, qry_exec_time):
         """time = a.rows + round_trip
         rows = (time - (round_trip))/a
@@ -158,11 +160,12 @@ class DBBase(BaseModel):
 
     def retreive_dataset(self):
         sql = f"""select * from {self._view_name}"""
-        self._d7=self.execquery(sql)
+        self._d7 = self.execquery(sql)
 
     def get_dataset(self):
         return self._d7
 
     def close(self):
         self.drop_view()
+        self.drop_objects()
         self._conn.close()

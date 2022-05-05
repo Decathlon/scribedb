@@ -257,8 +257,6 @@ class Compare(BaseModel):
         # LOGGER.info("source hashed: [%s]", source_hash)
         # LOGGER.info("target hashed: [%s]", target_hash)
 
-        self.source.db.drop()
-        self.target.db.drop()
         self.source.db.close()
         self.target.db.close()
 

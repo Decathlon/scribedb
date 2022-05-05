@@ -69,7 +69,7 @@ class Postgres(DBBase):
         self._num_rows = self.rowcount()
         rprint(f"{self.type} Counting rows:{self._num_rows}")
 
-    def drop(self):
+    def drop_objects(self):
         self.execquery(f"drop AGGREGATE md5_agg (ORDER BY anyelement) cascade")
         try:
             self.execquery(f"drop function if exists {PG_FNAME}")
