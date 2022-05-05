@@ -202,7 +202,7 @@ adrci                    libclntsh.dylib.12.1     libocci.dylib.10.1       liboc
 genezi                   libclntsh.dylib.18.1     libocci.dylib.11.1       liboramysql19.dylib      ucp.ja
 ```
 
-## start the test with table identical
+## Start the test with identical tables
 
 ```bash
 cd scribedb
@@ -250,7 +250,7 @@ Total estimated time: [15]s
 Dataset are identicals
 ```
 
-## start the test with table not identical
+## Start the test with no identical table
 
 change a line in oracle
 ```sql
