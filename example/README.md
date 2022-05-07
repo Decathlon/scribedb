@@ -67,7 +67,7 @@ in the 3 cases bellow, we compare the HR schema. As you can see high_limt and lo
 
 #### use case N°1
 
-the hr schema was migrate using ora2pg, we must compare the whole schema.
+the hr schema was migrated using ora2pg, we must compare the whole schema.
 
 ```bash
       - high_limit=6  

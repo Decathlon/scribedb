@@ -1,5 +1,5 @@
 <ul>
-<li>Pierrem-Marie Petit</li>
+<li>Pierre-Marie Petit</li>
 <li>Pierre Hilbert</li>
 <li>Pierre Caron</li>
 <li>Stephane Defenin</li>

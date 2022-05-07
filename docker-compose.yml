@@ -23,9 +23,12 @@ services:
       - 5432:5432
     container_name: pgdb
   scribedb:
-    build:
-      context: .
-      dockerfile: example/scribedb/Dockerfile
+    image: test:latest
+    volumes:
+      - ./example/scribedb/wait-for-postgres-and-oracle.sh:/wait-for-postgres-and-oracle.sh
+    #build:
+    #  context: .
+    #  dockerfile: example/scribedb/Dockerfile
     environment:
       - POSTGRES_PASSWORD=postgres
       - ORACLE_PASSWORD="oracle"
@@ -50,7 +53,7 @@ services:
       - oradb
     command:
       [
-        "./wait-for-postgres-and-oracle.sh",
+        "/wait-for-postgres-and-oracle.sh",
         "pgdb",
         "oradb",
         "python3",

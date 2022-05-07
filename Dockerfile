@@ -1,6 +1,6 @@
 FROM oraclelinux:7-slim
 
-LABEL maintainer "oss@decathlon.com"
+LABEL org.opencontainers.image.authors="oss@decathlon.com"
 
 RUN  curl -o /etc/yum.repos.d/public-yum-ol7.repo https://yum.oracle.com/public-yum-ol7.repo && \
   yum -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm && \
