@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  pull_request: {}
+  push:
+    branches:
+    - main
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+
+      - name: setup
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: test
+        run: |
+          python -m unittest
+
+      - name: build docker image
+        run: docker build -t decathlon/scribedb:latest .
+
+      - name: push
+        if: ${{ success() && github.event_name == 'push' && github.event.ref == 'refs/heads/main' }}
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          docker push decathlon/scribedb:latest

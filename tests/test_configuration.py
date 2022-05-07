@@ -31,4 +31,4 @@ class TestConfiguration(TestCase):
         filename=f"{PATH}/default_config.yaml"
         ref='{"loglevel": "INFO", "source": {"postgres": {"host": "localhost", "port": 5432, "username": "postgres", "password": "fddfdfdf", "dbname": "postgres"}, "qry": "select first_name from employee order by first_name;"}, "target": {"oracle": {"host": "localhost", "port": 1521, "username": "system", "password": "Decathlon0147", "instance": "XE"}, "qry": "select first_name from employee order by first_name;"}}'
         sut=config_file.json_config(filename)
-        self.assertEquals(sut,ref)
+        self.assertEqual(sut,ref)

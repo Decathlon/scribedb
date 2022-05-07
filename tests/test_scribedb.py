@@ -66,6 +66,9 @@ class TestScribedb(TestCase):
             prepare_test(e,url)
             port = pg1.get_exposed_port("5432")
             raw = raw.replace("5432", port)
+            # raw = raw.replace("PGPASSWORD", pg1.POSTGRES_PASSWORD)
+            os.environ["PGPASSWORD"] = pg1.POSTGRES_PASSWORD
+            raw = raw.replace("PGUSER", pg1.POSTGRES_USER)
             compare = Compare.parse_raw(raw)
             self.assertEqual(compare.source.db.type, "postgres")
             self.assertEqual(compare.target.db.type, "postgres")

@@ -6,7 +6,7 @@ source:
     type: postgres
     host: localhost
     port: 5432
-    username: test
+    username: PGUSER
     password: PGPASSWORD
     dbname: db1
     qry: select a,b,c from t_test order by a
@@ -16,7 +16,7 @@ target:
     type: postgres
     host: localhost
     port: 5432
-    username: test
+    username: PGUSER
     password: PGPASSWORD
     dbname: db2
     qry: select a,b,c from t_test order by a

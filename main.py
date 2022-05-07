@@ -6,7 +6,6 @@ import sys
 from threading import Thread
 from typing import Annotated, List, Literal, Optional, Union
 
-from mo_sql_parsing import parse
 from pydantic import BaseModel, Field, PrivateAttr
 from rich import print as rprint
 from typing_extensions import Annotated
