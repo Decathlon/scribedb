@@ -7,6 +7,7 @@ the example below assumes that 2 databases are running:
 
 
 Scribedb will compare data in 2 tables between postgresql and oracle.
+
 ## Running the example
 
 ### oracle setup
@@ -88,9 +89,10 @@ CREATE or replace FUNCTION smd5 (input varchar2) RETURN varchar2 PARALLEL_ENABLE
 ```
 #### create oracle testing table
 
-it is needed to run the test
+We will create a table with some data provided by a deterministic function.
 
-the generate series function
+The generate function is:
+
 ```sql
 CREATE OR REPLACE TYPE numbers_t AS TABLE OF NUMBER;
 /
@@ -108,22 +110,22 @@ BEGIN
 END;
 /
 ```
-create the table
-it is needed to run the test
+
+The table we will use for this test: 
+
 ```sql
 DROP TABLE t_test;
 CREATE TABLE t_test (a number, b number, c varchar2(255));
 INSERT INTO t_test SELECT column_value, column_value + 10,'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' FROM generate_series(1, 50000);
 
 commit;
-
 ```
 
 ### postgresql setup
 
 #### create pg aggregate function
 
-created during the execution. It is just for information
+Created during execution. It is just for information.
 
 ```sql
 CREATE or replace FUNCTION md5_agg_sfunc_t(text, text)
@@ -140,25 +142,22 @@ CREATE or replace AGGREGATE md5_agg_t (ORDER BY anyelement)
   SFUNC = md5_agg_sfunc,
   INITCOND = ''
 );
-
 ```
 
 #### create pg testing table
 
-it is needed to run the test
+We create the same table in the postgresql database as the one in oracle. 
 
 ```sql
 DROP TABLE t_test cascade;
 CREATE TABLE t_test (a int, b int, c text);
 INSERT INTO t_test SELECT x, x + 10,'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' FROM generate_series(1, 50000) AS x;
-
 ```
-
 
 
 ### configuration
 
-create a configuration file "test.yaml" with
+Create a configuration file "test.yaml" with:
 
 ```yaml
 loglevel: INFO
@@ -188,11 +187,10 @@ target:
 
 where
 - "password" is the env name for storing oracle/pg passwords
-- "qry" is the query executed to compare data. Be carefull:
+- "qry" is the query executed to compare data. Be careful:
   -  the "order by" clause. All data must be in the same order to be compared.
   -  the number of fields must be identical
-- "init_oracle_client" the path for oracle_instant_client path
-for example in this folder there are those files:
+- "init_oracle_client" the path for oracle_instant_client path. It should contains file like: 
 ```log
 BASIC_LICENSE            glogin.sql               libclntsh.dylib.19.1     libocci.dylib.12.1       libsqlplus.dylib         uidrvci
 BASIC_README             libclntsh.dylib          libclntshcore.dylib.19.1 libocci.dylib.18.1       libsqlplusic.dylib       xstreams.jar
@@ -207,8 +205,12 @@ genezi                   libclntsh.dylib.18.1     libocci.dylib.11.1       libor
 ```bash
 cd scribedb
 source venv/bin/activate
+export PGPASSWORD=__your_pg_password__
+export ORAPASSWORD=__your_ora_password__
 python main.py -f scribedb/test.yaml
 ```
+
+Scribedb should return you those logs:
 
 ```log
 Nb Column are identical (3) on source and target
@@ -250,29 +252,33 @@ Total estimated time: [15]s
 Dataset are identicals
 ```
 
-## Start the test with no identical table
+Success, the dataset have been detected identical.
 
-change a line in oracle
+## Non identical datasets
+
+Let's change a line in the oracle database to check how scribedb will react: 
+
 ```sql
-update t_test set c='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNO' where a=50;
+$ update t_test set c='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNO' where a=50;
 
 1 row updated.
 
-commit;
+$ commit;
 
 Commit complete.
-
-SQL>
 ```
 
-restart the test:
+Restarting scribedb: 
+
 ```bash
 cd scribedb
 source venv/bin/activate
+export PGPASSWORD=__your_pg_password__
+export ORAPASSWORD=__your_ora_password__
 python main.py -f scribedb/test.yaml
 ```
 
-when data are different, an exception is raised.
+Now, we can see an exception is raised: 
 
 ```log
 Nb Column are identical (3) on source and target
@@ -316,3 +322,5 @@ tgt:(50, 60, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNO')
 Dataset are different
 Exception
 ```
+
+and the modified line had been retrieved correctly!
