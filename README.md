@@ -26,7 +26,7 @@ You can check the [example](example.md).
 ## Contributing
 
 New features are always welcome (but first, you should open an issue to discuss new idea)   
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) and our [code of conduct](CODE_OF_CONDUCT.md), to check the process for submitting.
+Please read [contributing](CONTRIBUTING.md) and our [code of conduct](CODE_OF_CONDUCT.md), to check the process for submitting improvements/new features.
 
 ## Versioning
 
