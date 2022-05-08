@@ -1,1 +1,2 @@
 testcontainers==3.5.3
+coverage==6.3.2
