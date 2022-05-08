@@ -5,7 +5,7 @@
 
 The tool aims to compare data at schema level between two databases.
 
-For instance, if we compare two dataset with a difference on a single line, we may end up with a result like:
+For instance, if we compare two dataset with a data difference on a single line, we may end up with a result like:
 
 ```text
 1/3 NOK tgt hash:(6E12FA362B03456CC7601ABEBD454F35) (in 4532.164ms) 40%
