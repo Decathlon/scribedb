@@ -1,6 +1,7 @@
 # scribedb
 
-![build workflow](https://github.com/decathlon/scribedb/actions/workflows/build.yaml/badge.svg?branch=main)
+![Build workflow](https://github.com/decathlon/scribedb/actions/workflows/build.yaml/badge.svg?branch=main)
+![Last version](https://img.shields.io/github/v/release/decathlon/scribedb.svg)
 
 The tool aims to compare data at schema level between two databases.
 
@@ -14,10 +15,9 @@ tgt:(50, 60, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNO')
 Dataset are different
 ```
 
-
 Today, postgresql and oracle databases are supported. 
 
-Global Concept [Scribedb in gdoc](https://docs.google.com/presentation/d/1fm95I4YT40y5ZUj8Yaqxk-MaZO0ILIwpwGKuuNAk3JY/edit?usp=sharing)
+Here a global concept overview: [Scribedb in gdoc](https://docs.google.com/presentation/d/1fm95I4YT40y5ZUj8Yaqxk-MaZO0ILIwpwGKuuNAk3JY/edit?usp=sharing)
 
 ## Getting Started
 
