@@ -23,6 +23,13 @@ Here a global concept overview: [Scribedb in gdoc](https://docs.google.com/prese
 
 You can check the [example](example.md).
 
+If you want to launch scribedb you can also use the docker image:
+
+```bash
+# We assume the configuration file in /working/dir/config.yaml reference the password DB1_PASS and DB2_PASS 
+$ docker run --rm -v /working/dir/config.yaml:/config.yaml -e DB1_PASS=xxxxx -e DB2_PASS=xxxxx decathlon/scribedb:2.0 -f /config.yaml
+```
+
 ## Contributing
 
 New features are always welcome (but first, you should open an issue to discuss new idea)   
