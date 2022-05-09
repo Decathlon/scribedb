@@ -38,7 +38,7 @@ class DBBase(BaseModel):
     password: str
     qry: str
 
-    _view_name: str = PrivateAttr(default="scdb_test")  # random_char(20))
+    _view_name: str = PrivateAttr(default=random_char(20))  # "scdb_test"
     #    _qry_exec_time: int = PrivateAttr(default=QRY_EXECUTION_TIME)
     _bucket: int = PrivateAttr(default=0)
     _num_rows: int = PrivateAttr(default=0)
