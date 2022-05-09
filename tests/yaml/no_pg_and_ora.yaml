@@ -1,0 +1,18 @@
+loglevel: INFO
+source:
+  name: src
+  postgres:
+    host: localhost
+    port: 5432
+    username: postgres
+    password: PGPASSWORD
+    qry: select first_name from employee order by first_name;
+target:
+  name: tgt
+  oracle:
+    host: localhost
+    init_oracle_client: "/Users/PIERRE-MARIE/Downloads/instantclient_19_8"
+    port: 1521
+    username: system
+    password: ORAPASSWORD
+    qry: select first_name from employee order by first_name;

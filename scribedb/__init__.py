@@ -7,8 +7,4 @@ A minimal usage example:
 #
 """
 
-from . import oracle, postgres, rdbms, scribedb
-
 __version__ = '0.1.0'
-
-__all__ = ['__version__', 'oracle', 'postgres', 'scribedb','rdbms']

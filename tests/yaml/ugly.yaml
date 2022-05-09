@@ -1,0 +1,13 @@
+loglevel: INFO
+source:
+      postgres:
+    host: localhost
+port: 5432
+    username: postgres
+    password: ORAPASSWORD
+    dbname: postgres
+    qry: select first_name from employee order by first_name;
+target:
+  oracle:
+    host: localhost
+    po

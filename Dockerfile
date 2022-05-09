@@ -1,25 +1,25 @@
-FROM oraclelinux:7-slim
+FROM python:3.9-bullseye
 
-LABEL maintainer "oss@decathlon.com"
+LABEL org.opencontainers.image.authors="oss@decathlon.com"
 
-RUN  curl -o /etc/yum.repos.d/public-yum-ol7.repo https://yum.oracle.com/public-yum-ol7.repo && \
-     yum -y install https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-7-x86_64/pgdg-oraclelinux96-9.6-3.noarch.rpm && \
-     yum-config-manager --enable ol7_oracle_instantclient && \
-     yum -y install oracle-instantclient18.3-basic oracle-instantclient18.3-devel oracle-instantclient18.3-sqlplus postgresql96 && \
-     echo /usr/lib/oracle/18.3/client64/lib > /etc/ld.so.conf.d/oracle-instantclient18.3.conf && \
-     ldconfig && \
-     yum install -y yum-utils && \
-     yum-config-manager --enable *EPEL && \
-     yum install -y python36 && \
-     yum install -y python36-pip && \  
-     rm -rf /var/cache/yum      
+RUN apt-get update && apt-get install -y --no-install-recommends alien libaio1 wget && \
+    wget https://download.oracle.com/otn_software/linux/instantclient/185000/oracle-instantclient18.5-basic-18.5.0.0.0-3.x86_64.rpm && \
+    wget https://download.oracle.com/otn_software/linux/instantclient/185000/oracle-instantclient18.5-devel-18.5.0.0.0-3.x86_64.rpm && \
+    wget https://download.oracle.com/otn_software/linux/instantclient/185000/oracle-instantclient18.5-sqlplus-18.5.0.0.0-3.x86_64.rpm && \
+    alien -i oracle-instantclient18.5-basic-18.5.0.0.0-3.x86_64.rpm && \
+    alien -i oracle-instantclient18.5-devel-18.5.0.0.0-3.x86_64.rpm && \
+    alien -i oracle-instantclient18.5-sqlplus-18.5.0.0.0-3.x86_64.rpm && \
+    rm -f oracle-instantclient18.5-basic-18.5.0.0.0-3.x86_64.rpm && \
+    rm -f oracle-instantclient18.5-devel-18.5.0.0.0-3.x86_64.rpm && \
+    rm -f oracle-instantclient18.5-sqlplus-18.5.0.0.0-3.x86_64.rpm
 
-ENV PATH=$PATH:/usr/lib/oracle/18.3/client64/bin
-ENV LD_LIBRARY_PATH=usr/lib/oracle/18.3/client64/lib
+ENV LD_LIBRARY_PATH="/usr/lib/oracle/18.5/client64/lib:${LD_LIBRARY_PATH}"
+ENV PATH=$PATH:/usr/lib/oracle/18.5/client64/bin
 
 COPY requirements.txt .
-RUN pip3.6 install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-COPY scribedb/*.py /
+COPY main.py /
+COPY scribedb /scribedb
 
-CMD ["python3.6","./scribedb.py"]
+ENTRYPOINT ["python3","/main.py"]

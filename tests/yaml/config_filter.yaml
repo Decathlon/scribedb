@@ -1,0 +1,21 @@
+loglevel: INFO
+source:
+  name: src
+  db:
+    type: postgres
+    host: localhost
+    port: 5432
+    username: postgres
+    password: PGPASSWORD
+    dbname: postgres
+    qry: select a,b,c from t_test order by a
+target:
+  name: tgt
+  db:
+    type: postgres
+    host: localhost
+    port: 5432
+    username: test
+    password: PGPASSWORD
+    dbname: db2
+    qry: select a,b,c from t_test order by a

@@ -1,0 +1,23 @@
+loglevel: INFO
+source:
+  name: src_name
+  db:
+    type: postgres
+    host: localhost
+    port: 5432
+    username: avnadmin
+    password: PGPASSWORD
+    dbname: db1
+    sslmode: require
+    qry: select first_name from hr.employees where first_name='Jose Manuel' order by first_name
+target:
+  name: tgt_name
+  db:
+    type: oracle
+    init_oracle_client: "/Users/PIERRE-MARIE/Downloads/instantclient_19_8"
+    host: localhost
+    port: 1521
+    username: system
+    password: ORAPASSWORD
+    service_name: XE
+    qry: select first_name from hr.employees where first_name='Jose Manuel' order by first_name
