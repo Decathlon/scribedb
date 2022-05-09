@@ -1,7 +1,6 @@
 psycopg2-binary==2.9.3
 cx_Oracle==8.3.0
 pdoc3==0.10.0
-# python-logstash-async==1.6.4
 pydantic==1.9.0
 numpy==1.22.3
 rich==12.4.0

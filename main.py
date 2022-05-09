@@ -115,10 +115,11 @@ class Dataset:
 
 def compare_d7(rows1: Dataset, rows2: Dataset):
     def print_d7(rows, name):
+        i_err: int = 0
         for i in range(len(rows)):
             rprint(f"{name}:{rows.pop()}")
-            errors = +1
-        return errors
+            i_err = +1
+        return i_err
 
     errors = 0
     if rows1.d7 is not None:
@@ -209,7 +210,7 @@ class Compare(BaseModel):
             rprint(
                 f"[red]Dataset are empty source:({self.source.db.get_d7_num_rows()}) target:(${self.target.db.get_d7_num_rows()}"
             )
-            exit
+            exit()
         est_time = loops * QRY_EXECUTION_TIME // 1000
         rprint(f"Total estimated time: [{est_time}]s")
         for i in range(loops):
