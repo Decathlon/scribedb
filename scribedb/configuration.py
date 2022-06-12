@@ -17,7 +17,6 @@ class Configuration:
         LOGGER.setLevel(getattr(logging, loglevel))
 
     def json_config(self,config_file_name: str) -> dict:
-
         try:
             with open(config_file_name, "r") as fd:
                 raw_yaml = yaml.safe_load(fd)

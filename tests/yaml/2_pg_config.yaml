@@ -1,5 +1,4 @@
 loglevel: INFO
-test: true
 source:
   name: src
   db:

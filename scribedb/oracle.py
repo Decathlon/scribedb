@@ -1,11 +1,13 @@
 import logging
 import os
 import time
+import json
+from tkinter import E
 from typing import Annotated, List, Literal, Optional, Union
 
 import cx_Oracle
 from sqlalchemy import create_engine
-from mo_sql_parsing import parse
+from mo_sql_parsing import parse, format
 from pydantic import PrivateAttr
 from rich import print as rprint
 
@@ -127,14 +129,25 @@ class Oracle(DBBase):
             + "/?service_name="
             + SERVICE
         )
-        cx_Oracle.init_oracle_client(lib_dir=f"{self.init_oracle_client}")
+        try:
+            cx_Oracle.init_oracle_client(lib_dir=f"{self.init_oracle_client}")
+        except Exception as e:
+            print(e)
         try:
             _engine = create_engine(sqlUrl)
         except Exception as err:
             self.log_exception(err)
-            self._engine = None
-            raise
-        self._conn = _engine.connect()
+            _engine = None
+            raise ValueError("create engine ora failed") from Exception
+        try:
+            self._conn = _engine.connect()
+        except Exception:
+            raise ValueError("connect pg failed") from Exception
+        parsed_qry = parse(self.qry)
+        try:
+            parsed_qry.get("orderby")["value"]
+        except Exception as e:
+            raise ValueError("order by is required") from Exception
 
     def prepare(self):
         sqlSetSession = f"""alter session set NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS'"""
@@ -159,9 +172,28 @@ class Oracle(DBBase):
         create temporary view to be able to get the datatype for cast
         drop the view if exists
         """
-        stmt = f"""create or replace view {self._view_name} as {self.qry}"""
+
+        parsed_qry = parse(self.qry)
+        stmt_orderby = parsed_qry.get("orderby")["value"]
+        stmt_new_field = {"value": f"ROW_NUMBER() OVER (ORDER BY {stmt_orderby})", "name": "rnum"}
+        parsed_qry.get("select").append(stmt_new_field)
+        sanitized_qry = format(parsed_qry).replace('"ROW', "ROW").replace(')" AS rnum', ") AS rnum")
+
+        stmt = f"""create or replace view {self._view_name}
+        as select * from (
+            {sanitized_qry}
+            )
+        """
+
+        # only in 12c
+        # stmt = f"""create or replace view {self._view_name} as {self.qry}"""
+        # if start != 0 or stop != 0:
+        #     sql = stmt + f" offset {start} rows fetch next {stop} rows only"
+        # else:
+        #     sql = stmt
+
         if start != 0 or stop != 0:
-            sql = stmt + f" offset {start} rows fetch next {stop} rows only"
+            sql = stmt + f" where rnum between {start} and {stop}"
         else:
             sql = stmt
 

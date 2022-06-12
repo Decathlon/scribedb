@@ -1,5 +1,4 @@
 loglevel: INFO
-test: true
 source:
   name: src
   db:
@@ -10,7 +9,7 @@ source:
     username: system
     password: ORAPASSWORD
     service_name: XE
-    qry: select a,b,c from t_test_1 order by a
+    qry: select a,b,c from t_test order by a
 target:
   name: tgt
   db:
@@ -21,4 +20,4 @@ target:
     username: system
     password: ORAPASSWORD
     service_name: XE
-    qry: select a,b,c from t_test_2 order by a
+    qry: select a,b,c from t_test order by a
