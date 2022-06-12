@@ -113,7 +113,7 @@ it is needed to run the test
 ```sql
 DROP TABLE t_test;
 CREATE TABLE t_test (a number, b number, c varchar2(255));
-INSERT INTO t_test SELECT column_value, column_value + 10,'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' FROM generate_series(1, 50000);
+INSERT INTO t_test SELECT column_value, column_value + 10,'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' FROM table(generate_series(1, 50000));
 
 commit;
 

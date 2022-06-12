@@ -25,85 +25,7 @@ ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
 
-# class DBPostgres(DBBase):
-
-#     type: Literal["postgres"]
-#     dbname: str
-#     sslmode: Optional[str]
-
-#     _pg: Postgres = PrivateAttr()
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         self._pg = Postgres(self.qry, self._view_name)
-
-#     def prepare(self):
-#         self._pg.prepare(self.host, self.port, self.username, os.getenv(self.password), self.dbname, self.sslmode)
-
-#     def rowcount(self):
-#         return self._pg.num_rows
-
-#     def hash(self, start:int=0, stop:int=0):
-#         return self._pg.hash(start, stop)
-
-#     def computed_hash(self):
-#         return self._pg.computed_hash()
-
-#     def estimate(self):
-#         self._pg.estimate_execution(self._qry_exec_time)
-
-#     def exec_duration(self):
-#         return round(self._pg.exec_duration,1)
-
-#     def get_bucket(self):
-#         return self._pg.bucket
-
-#     def close(self):
-#         return self._pg.close()
-
-
-# class DBOracle(DBBase):
-
-#     init_oracle_client: str
-#     type: Literal["oracle"]
-#     instance: Optional[str]
-#     service_name: Optional[str]
-
-#     _ora: Oracle = PrivateAttr()
-
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         self._ora = Oracle(self.qry, self._view_name)
-
-#     def prepare(self):
-#         self._ora.prepare(
-#             self.host, self.port, self.username, os.getenv(self.password), self.instance, self.service_name
-#         )
-
-#     def rowcount(self):
-#         return self._ora.num_rows
-
-#     def hash(self, start:int=0, stop:int=0):
-#         return self._ora.hash(start, stop)
-
-#     def computed_hash(self):
-#         return self._ora.computed_hash()
-
-#     def estimate(self):
-#         self._ora.estimate_execution(self._qry_exec_time)
-
-#     def exec_duration(self):
-#         return round(self._ora.exec_duration,1)
-
-#     def get_bucket(self):
-#         return self._ora.bucket
-
-#     def close(self):
-#         return self._ora.close()
-
-
 Db = Annotated[Union[Postgres, Oracle], Field(discriminator="type")]
-
 
 class Dataset:
     d7: list
@@ -196,13 +118,6 @@ class Compare(BaseModel):
             f"{self.target.name} can hash ({self.target.db.get_bucket()}) rows in {QRY_EXECUTION_TIME}ms num_rows:{self.target.db.get_d7_num_rows()}"
         )
 
-        # source_hash_thread = Thread(target=self.source.db.hash())
-        # target_hash_thread = Thread(target=self.target.db.hash())
-        # source_hash_thread.start()
-        # target_hash_thread.start()
-        # source_hash_thread.join()
-        # target_hash_thread.join()
-
         bucket = min(self.source.db.get_bucket(), self.target.db.get_bucket())
         rows = max(self.source.db.get_d7_num_rows(), self.target.db.get_d7_num_rows())
         loops = math.ceil(rows / bucket)
@@ -262,7 +177,9 @@ class Compare(BaseModel):
 
         if _errors != 0:
             rprint("[bold red]Datasets are different")
-            raise ValueError(f"""Datasets are different.""") from Exception
+            #raise NameError('Datasets are different.')
+            raise ValueError("Datasets are different") from Exception
+            #raise Exception(f"""Datasets are different.""") from Exception
         else:
             rprint("[bold blue]Datasets are identicals")
 
