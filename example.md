@@ -24,7 +24,7 @@ grant execute on dbms_crypto to system;
 created during the execution. It is just for information
 
 ```sql
-CREATE OR REPLACE NONEDITIONABLE TYPE "MD5AGG_CLOB_T_STR" as object(
+CREATE OR REPLACE TYPE "MD5AGG_CLOB_T_STR" as object(
     v_md5 raw(16),
     v_clob varchar2(4000),
 
@@ -46,7 +46,7 @@ CREATE OR REPLACE NONEDITIONABLE TYPE "MD5AGG_CLOB_T_STR" as object(
  );
 /
 
-CREATE OR REPLACE NONEDITIONABLE TYPE BODY "MD5AGG_CLOB_T_STR" is
+CREATE OR REPLACE TYPE BODY "MD5AGG_CLOB_T_STR" is
     static function ODCIAggregateInitialize(sctx IN OUT md5agg_clob_t_str)
     return number is
     begin

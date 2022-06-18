@@ -92,9 +92,6 @@ class Postgres(DBBase):
         create temporary view to be able to get the datatype for cast
         drop the view if exists
         """
-        stmt = f"""create or replace view {self._view_name} as {self.qry}"""
-        if start != 0 or stop != 0:
-            sql = stmt + f" limit {stop} offset {start}"
-        else:
-            sql = stmt
+        sql=self.get_ddl_view(start,stop)
+
         self.execquery(sql)

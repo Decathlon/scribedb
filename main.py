@@ -142,10 +142,10 @@ class Compare(BaseModel):
             eta = min(100, round(100 * ((i + 1) * bucket) / rows))
             if source_hash != target_hash:
                 rprint(
-                    f"{i+1}/{loops} NOK [bold red]{self.source.name} hash:({source_hash}) (in {self.source.db.get_exec_duration()}ms)[/bold red] {eta}%"
+                    f"{i+1}/{loops} NOK [bold red]{self.source.name} hash:({source_hash}) (start: {i * bucket} stop:{(i + 1) * bucket} rows computed:{self.source.db.rowcount()} in {self.source.db.get_exec_duration()}ms)[/bold red] {eta}%"
                 )
                 rprint(
-                    f"{i+1}/{loops} NOK [bold red]{self.target.name} hash:({target_hash}) (in {self.target.db.get_exec_duration()}ms)[/bold red] {eta}%"
+                    f"{i+1}/{loops} NOK [bold red]{self.target.name} hash:({target_hash}) (start: {i * bucket} stop:{(i + 1) * bucket} rows computed:{self.target.db.rowcount()} in {self.target.db.get_exec_duration()}ms)[/bold red] {eta}%"
                 )
                 self.target.db.retreive_dataset()
                 self.source.db.retreive_dataset()
@@ -155,10 +155,10 @@ class Compare(BaseModel):
                 _errors = +err
             else:
                 rprint(
-                    f"{i+1}/{loops} OK [bold blue]{self.source.name} hash:({source_hash}) (in {self.source.db.get_exec_duration()}ms)[/bold blue] {eta}%"
+                    f"{i+1}/{loops} OK [bold blue]{self.source.name} hash:({source_hash}) (start: {i * bucket} stop:{(i + 1) * bucket} rows computed:{self.source.db.rowcount()} in {self.source.db.get_exec_duration()}ms)[/bold blue] {eta}%"
                 )
                 rprint(
-                    f"{i+1}/{loops} OK [bold blue]{self.target.name} hash:({target_hash}) (in {self.target.db.get_exec_duration()}ms)[/bold blue] {eta}%"
+                    f"{i+1}/{loops} OK [bold blue]{self.target.name} hash:({target_hash}) (start: {i * bucket} stop:{(i + 1) * bucket} rows computed:{self.target.db.rowcount()} in {self.target.db.get_exec_duration()}ms)[/bold blue] {eta}%"
                 )
 
         # self.source.db.hash()

@@ -5,7 +5,7 @@ from typing import Annotated, Union
 import time
 from rich import print as rprint
 
-from mo_sql_parsing import parse
+from mo_sql_parsing import parse,format
 from pydantic import BaseModel, Field, PrivateAttr
 from sqlalchemy.engine.base import Connection
 
@@ -83,6 +83,9 @@ class DBBase(BaseModel):
     def computed_hash(self):
         return self._computed_hash
 
+    # def computed_rows(self):
+    #     return self._rows_computed
+
     def rowcount(self):
         """
         create temporary view to be able to get the datatype for cast
@@ -127,7 +130,7 @@ class DBBase(BaseModel):
             round_trip = round_trip + explain(self._roundtrip)
         round_trip = round_trip / ESTIMATE_LOOP
         for j in range(ESTIMATE_LOOP):
-            r = (j + 1) + j * 100 - 2 * j
+            r = (j + 1) + j * 100
             self.create_view(0, r)
             for i in range(ESTIMATE_LOOP):
                 rprint(f"{self.type} Estimating for {r} rows, N° {i+1}")
@@ -156,7 +159,7 @@ class DBBase(BaseModel):
     def hash(self, start=0, stop=0):
         self.create_view(start, stop)
         tmp = self.execquery(self._hash_qry)
-        self._computed_hash = tmp[0][0]
+        self._computed_hash = tmp[0]
 
     def retreive_dataset(self):
         sql = f"""select * from {self._view_name}"""
@@ -169,3 +172,28 @@ class DBBase(BaseModel):
         self.drop_view()
         self.drop_objects()
         self._conn.close()
+
+    def get_ddl_view(self, start: int = 0, stop: int = 0):
+        """
+        create temporary view to be able to get the datatype for cast
+        drop the view if exists
+        """
+
+        parsed_qry = parse(self.qry)
+        stmt_orderby = parsed_qry.get("orderby")["value"]
+        stmt_new_field = {"value": f"ROW_NUMBER() OVER (ORDER BY {stmt_orderby})", "name": "rnum"}
+        parsed_qry.get("select").append(stmt_new_field)
+        sanitized_qry = format(parsed_qry).replace('"ROW', "ROW").replace(')" AS rnum', ") AS rnum")
+
+        stmt = f"""create or replace view {self._view_name}
+        as select * from (
+            {sanitized_qry}
+            ) a
+        """
+
+        if start != 0 or stop != 0:
+            sql = stmt + f" where rnum between {start} and {start}+{stop}"
+        else:
+            sql = stmt
+
+        return sql

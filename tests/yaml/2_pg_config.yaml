@@ -17,5 +17,5 @@ target:
     port: 5432
     username: test
     password: PGPASSWORD
-    dbname: db2
+    dbname: db1
     qry: select a,b,c from t_test order by a

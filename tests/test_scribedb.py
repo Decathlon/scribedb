@@ -30,15 +30,6 @@ os.environ["ORAPASSWORD"] = "oracle"
 
 
 def prepare_test(e, url):
-    exec_qry(e, "create database db2")
-    exec_qry(
-        e,
-        f"""DROP TABLE if exists t_test cascade;
-            CREATE TABLE t_test (a int, b int, c text);
-            INSERT INTO t_test SELECT x, x + 10,'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' FROM generate_series(1, 50000) AS x;
-            """,
-    )
-    e = sqlalchemy.create_engine(url.replace("db1", "db2"))
     exec_qry(
         e,
         f"""DROP TABLE if exists t_test cascade;
@@ -105,19 +96,25 @@ class TestScribedb(TestCase):
         filename = f"{PATH}/2_pg_config.yaml"
         raw = config_file.json_config(filename)
         with PostgresContainer(port=5432, dbname="db1") as pg1:
-            url = pg1.get_connection_url()
-            e = sqlalchemy.create_engine(url)
-            prepare_test(e, url)
-            port = pg1.get_exposed_port("5432")
-            raw = raw.replace("5432", port)
-            compare = Compare.parse_raw(raw)
-            self.assertEqual(compare.source.db.type, "postgres")
-            self.assertEqual(compare.target.db.type, "postgres")
-            self.assertIsNotNone(compare.target.db.computed_hash())
-            self.assertEqual(compare.target.db.computed_hash(), compare.source.db.computed_hash())
-            self.assertTrue(Compare.parse_raw, raw)
+            with PostgresContainer(port=5432, dbname="db1") as pg2:
+                url = pg1.get_connection_url()
+                e = sqlalchemy.create_engine(url)
+                prepare_test(e, url)
+                url = pg2.get_connection_url()
+                e = sqlalchemy.create_engine(url)
+                prepare_test(e, url)
+                port = pg1.get_exposed_port("5432")
+                raw = raw.replace("5432", port,1)
+                port = pg2.get_exposed_port("5432")
+                raw = raw.replace("5432", port,1)
+                compare = Compare.parse_raw(raw)
+                self.assertEqual(compare.source.db.type, "postgres")
+                self.assertEqual(compare.target.db.type, "postgres")
+                self.assertIsNotNone(compare.target.db.computed_hash())
+                self.assertEqual(compare.target.db.computed_hash(), compare.source.db.computed_hash())
+                self.assertTrue(Compare.parse_raw, raw)
 
-    @pytest.mark.skip(reason="needs oracle client libraries unavailable on Travis")
+    #@pytest.mark.skip(reason="needs oracle client libraries unavailable on Travis")
     def test_is_ok_with_2_ora(self):
         config_file = Configuration()
         filename = f"{PATH}/2_ora_config.yaml"
@@ -151,6 +148,72 @@ class TestScribedb(TestCase):
                 self.assertIsNotNone(compare.target.db.computed_hash())
                 self.assertEqual(compare.target.db.computed_hash(), compare.source.db.computed_hash())
 
+    #@pytest.mark.skip(reason="needs oracle client libraries unavailable on Travis")
+    def test_is_ok_with_1_ora_1_pg(self):
+        config_file = Configuration()
+        filename = f"{PATH}/1_pg_1_ora.yaml"
+        raw = config_file.json_config(filename)
+        parsed_raw = json.loads(raw)
+        cx_Oracle.init_oracle_client(lib_dir=f"/Users/PIERRE-MARIE/Downloads/instantclient_19_8")
+
+        with PostgresContainer(port=5432, dbname="db1") as pg_source:
+            with OracleDbContainer() as oracle_target:
+                url = pg_source.get_connection_url()
+                e = sqlalchemy.create_engine(url)
+                prepare_test(e, 50000)
+                result = e.execute("select count(*) from t_test")
+                for row in result:
+                    self.assertEqual(row[0], 50000)
+                url = oracle_target.get_connection_url()
+                e = sqlalchemy.create_engine(url)
+                set_grants_ora(url, "system")
+                prepare_test_ora(e, 50000)
+                result = e.execute("select count(*) from t_test")
+                for row in result:
+                    self.assertEqual(row[0], 50000)
+
+                parsed_raw["target"]["db"]["port"] = oracle_target.get_exposed_port("1521")
+                parsed_raw["source"]["db"]["port"] = pg_source.get_exposed_port("5432")
+
+                raw = json.dumps(parsed_raw)
+
+                compare = Compare.parse_raw(raw)
+                self.assertEqual(compare.source.db.type, "postgres")
+                self.assertEqual(compare.target.db.type, "oracle")
+                self.assertIsNotNone(compare.target.db.computed_hash())
+                self.assertEqual(compare.target.db.computed_hash(), compare.source.db.computed_hash())
+
+    def test_is_nok_with_1_ora_1_pg(self):
+        config_file = Configuration()
+        filename = f"{PATH}/1_pg_1_ora.yaml"
+        raw = config_file.json_config(filename)
+        parsed_raw = json.loads(raw)
+        cx_Oracle.init_oracle_client(lib_dir=f"/Users/PIERRE-MARIE/Downloads/instantclient_19_8")
+
+        with PostgresContainer(port=5432, dbname="db1") as pg_source:
+            with OracleDbContainer() as oracle_target:
+                url = pg_source.get_connection_url()
+                e = sqlalchemy.create_engine(url)
+                prepare_test(e, 50000)
+                e.execute("update t_test set c='abcdefghijklmnopqrstuvwxy' where a=10")
+                result = e.execute("select count(*) from t_test")
+                for row in result:
+                    self.assertEqual(row[0], 50000)
+                url = oracle_target.get_connection_url()
+                e = sqlalchemy.create_engine(url)
+                set_grants_ora(url, "system")
+                prepare_test_ora(e, 50000)
+                result = e.execute("select count(*) from t_test")
+                for row in result:
+                    self.assertEqual(row[0], 50000)
+
+                parsed_raw["target"]["db"]["port"] = oracle_target.get_exposed_port("1521")
+                parsed_raw["source"]["db"]["port"] = pg_source.get_exposed_port("5432")
+
+                raw = json.dumps(parsed_raw)
+                self.assertRaises(ValueError, Compare.parse_raw, raw)
+
+
     def test_is_nok_with_2_ora(self):
         config_file = Configuration()
         filename = f"{PATH}/2_ora_config.yaml"
@@ -181,13 +244,19 @@ class TestScribedb(TestCase):
         filename = f"{PATH}/2_pg_config.yaml"
         raw = config_file.json_config(filename)
         with PostgresContainer(port=5432, dbname="db1") as pg1:
-            url = pg1.get_connection_url()
-            e = sqlalchemy.create_engine(url)
-            prepare_test(e, url)
-            e.execute("update t_test set c='abcdefghijklmnopqrstuvwxy' where a=10")
-            port = pg1.get_exposed_port("5432")
-            raw = raw.replace("5432", port)
-            self.assertRaises(ValueError, Compare.parse_raw, raw)
+            with PostgresContainer(port=5432, dbname="db1") as pg2:
+                url = pg1.get_connection_url()
+                e = sqlalchemy.create_engine(url)
+                prepare_test(e, url)
+                url = pg2.get_connection_url()
+                e = sqlalchemy.create_engine(url)
+                prepare_test(e, url)
+                e.execute("update t_test set c='abcdefghijklmnopqrstuvwxy' where a=10")
+                port = pg1.get_exposed_port("5432")
+                raw = raw.replace("5432", port, 1)
+                port = pg2.get_exposed_port("5432")
+                raw = raw.replace("5432", port, 1)
+                self.assertRaises(ValueError, Compare.parse_raw, raw)
 
     def test_nb_column_is_different(self):
         config_file = Configuration()

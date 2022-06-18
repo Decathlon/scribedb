@@ -172,31 +172,7 @@ class Oracle(DBBase):
         create temporary view to be able to get the datatype for cast
         drop the view if exists
         """
-
-        parsed_qry = parse(self.qry)
-        stmt_orderby = parsed_qry.get("orderby")["value"]
-        stmt_new_field = {"value": f"ROW_NUMBER() OVER (ORDER BY {stmt_orderby})", "name": "rnum"}
-        parsed_qry.get("select").append(stmt_new_field)
-        sanitized_qry = format(parsed_qry).replace('"ROW', "ROW").replace(')" AS rnum', ") AS rnum")
-
-        stmt = f"""create or replace view {self._view_name}
-        as select * from (
-            {sanitized_qry}
-            )
-        """
-
-        # only in 12c
-        # stmt = f"""create or replace view {self._view_name} as {self.qry}"""
-        # if start != 0 or stop != 0:
-        #     sql = stmt + f" offset {start} rows fetch next {stop} rows only"
-        # else:
-        #     sql = stmt
-
-        if start != 0 or stop != 0:
-            sql = stmt + f" where rnum between {start} and {stop}"
-        else:
-            sql = stmt
-
+        sql = self.get_ddl_view(start, stop)
         self.execquery(sql)
 
     def build_select(self):
@@ -217,4 +193,5 @@ class Oracle(DBBase):
         except:
             raise ValueError(f"""Error building oracle select.""") from Exception
 
+        st = st + "||','||rnum "
         return st
