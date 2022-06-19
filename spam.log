@@ -1,0 +1,25 @@
+2020-04-13 09:41:32,656 - simple_example - DEBUG - debug message
+2020-04-13 09:41:33,064 - simple_example - INFO - info message
+2020-04-13 09:41:33,383 - simple_example - WARNING - warn message
+2020-04-13 09:41:33,727 - simple_example - ERROR - error message
+2020-04-13 09:41:34,227 - simple_example - CRITICAL - critical message
+2020-04-14 08:27:26,986 - simple_example - DEBUG - debug message
+2020-04-14 08:27:26,987 - simple_example - INFO - info message
+2020-04-14 08:27:26,987 - simple_example - WARNING - warn message
+2020-04-14 08:27:26,988 - simple_example - ERROR - error message
+2020-04-14 08:27:31,364 - simple_example - CRITICAL - critical message
+2020-04-14 08:28:02,073 - simple_example - DEBUG - debug message
+2020-04-14 08:28:03,700 - simple_example - INFO - info message
+2020-04-14 08:28:07,786 - simple_example - WARNING - warn message
+2020-04-14 08:28:08,791 - simple_example - ERROR - error message
+2020-04-14 08:28:10,428 - simple_example - CRITICAL - critical message
+{"message": "debug message", "time": "2020-04-14T06:30:07.906595"}
+{"message": "info message", "time": "2020-04-14T06:30:08.404641"}
+{"message": "warn message", "time": "2020-04-14T06:30:08.933480"}
+{"message": "error message", "time": "2020-04-14T06:30:09.442612"}
+{"message": "critical message", "time": "2020-04-14T06:30:10.256520"}
+{"message": "debug message", "time": "2020-04-14T06:32:29.995050"}
+{"message": "info message", "time": "2020-04-14T06:32:30.516405"}
+{"message": "warn message", "time": "2020-04-14T06:32:30.891869"}
+{"message": "error message", "time": "2020-04-14T06:32:31.280042"}
+{"message": "critical message", "time": "2020-04-14T06:32:35.277984"}

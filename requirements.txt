@@ -7,3 +7,5 @@ rich==12.4.0
 mo_sql_parsing==8.172.22121
 PyYAML==6.0
 SQLAlchemy==1.4.36
+pytest==7.1.1
+testcontainers==3.6.0

@@ -5,6 +5,7 @@ from typing import Annotated, List, Literal, Optional, Union
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
+from mo_sql_parsing import parse, format
 
 from pydantic import PrivateAttr
 from rich import print as rprint
@@ -58,9 +59,19 @@ class Postgres(DBBase):
             _engine = create_engine(sqlUrl)
         except Exception as err:
             self.log_exception(err)
-            self._engine = None
-            raise
-        self._conn = _engine.connect()
+            s_engine = None
+            raise ValueError("create engine pg failed") from Exception
+        try:
+            self._conn = _engine.connect()
+        except Exception as err:
+            self.log_exception(err)
+            _engine = None
+            raise ValueError("connect pg failed") from Exception
+        parsed_qry = parse(self.qry)
+        try:
+            parsed_qry.get("orderby")["value"]
+        except Exception as e:
+            raise ValueError("order by is required") from Exception
 
     def prepare(self):
         self.execquery(str(PG_MD5_FN))
