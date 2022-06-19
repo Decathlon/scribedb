@@ -35,35 +35,35 @@ class Dataset:
         self.d7 = d7
         self.name = name
 
-
-def compare_d7(rows1: Dataset, rows2: Dataset):
-    def print_d7(rows, name):
-        for i in range(len(rows)):
-            rprint(f"{name}:{rows.pop()}")
-            errors = +1
-        return errors
-
-    errors = 0
-    if rows1.d7 is not None:
-        rowsets1 = set(rows1.d7)
-        if rows2.d7 is not None:
-            rowsets2 = set(rows2.d7)
-            result_a_b = rowsets1 - rowsets2
-            result_b_a = rowsets2 - rowsets1
-            if len(result_a_b) > 0:
-                err = print_d7(result_a_b, rows1.name)
-                errors = +err
-            if len(result_b_a) > 0:
-                err = print_d7(result_b_a, rows2.name)
-                errors = +err
-    return errors
-
-
 class Rdbms(BaseModel):
     """Rdbms dataset."""
 
     db: Db
     name: str
+
+def compare_d7(source: Rdbms, target: Rdbms):
+    def print_d7(rows):
+        for i in range(len(rows)):
+            row=tuple({rows.pop()})
+            rprint(f"{row[0]} qry:{source.db.get_select(row[0][len(row[0])-1])}")
+            errors = +1
+        return errors
+
+    target.db.retreive_dataset()
+    source.db.retreive_dataset()
+    target_ds = Dataset(target.db.get_dataset(), target.name)
+    source_ds = Dataset(source.db.get_dataset(), source.name)
+
+    errors = 0
+    if source_ds.d7 is not None:
+        sources1 = set(source_ds.d7)
+        if target_ds.d7 is not None:
+            targets2 = set(target_ds.d7)
+            results = set.symmetric_difference(sources1, targets2)
+            if len(results) > 0:
+                err = print_d7(sorted(results))
+                errors = +err
+    return errors
 
 
 class Compare(BaseModel):
@@ -72,7 +72,7 @@ class Compare(BaseModel):
     source: Rdbms
     target: Rdbms
     loglevel: str
-    max_delta: Optional[int]
+    max_delta: Optional[int] = 10
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -112,10 +112,10 @@ class Compare(BaseModel):
         # LOGGER.info("source hashing: %s rows", self.source.db.rowcount())
         # LOGGER.info("target hashing: %s rows", self.target.db.rowcount())
         rprint(
-            f"{self.source.name} can hash ({self.source.db.get_bucket()}) rows in {QRY_EXECUTION_TIME}ms num_rows:{self.source.db.get_d7_num_rows()}"
+            f"{self.source.name} can hash ({self.source.db.get_bucket()}) rows in {QRY_EXECUTION_TIME} ms. Total rows:{self.source.db.get_d7_num_rows()}"
         )
         rprint(
-            f"{self.target.name} can hash ({self.target.db.get_bucket()}) rows in {QRY_EXECUTION_TIME}ms num_rows:{self.target.db.get_d7_num_rows()}"
+            f"{self.target.name} can hash ({self.target.db.get_bucket()}) rows in {QRY_EXECUTION_TIME} ms. Total rows:{self.target.db.get_d7_num_rows()}"
         )
 
         bucket = min(self.source.db.get_bucket(), self.target.db.get_bucket())
@@ -129,8 +129,8 @@ class Compare(BaseModel):
         est_time = loops * QRY_EXECUTION_TIME // 1000
         rprint(f"Total estimated time: [{est_time}]s")
         for i in range(loops):
-            source_prepare_thread = Thread(target=self.source.db.hash(i * bucket, (i + 1) * bucket))
-            target_prepare_thread = Thread(target=self.target.db.hash(i * bucket, (i + 1) * bucket))
+            source_prepare_thread = Thread(target=self.source.db.hash(i * bucket, bucket))
+            target_prepare_thread = Thread(target=self.target.db.hash(i * bucket, bucket))
             source_prepare_thread.start()
             target_prepare_thread.start()
             source_prepare_thread.join()
@@ -142,35 +142,22 @@ class Compare(BaseModel):
             eta = min(100, round(100 * ((i + 1) * bucket) / rows))
             if source_hash != target_hash:
                 rprint(
-                    f"{i+1}/{loops} NOK [bold red]{self.source.name} hash:({source_hash}) (start: {i * bucket} stop:{(i + 1) * bucket} rows computed:{self.source.db.rowcount()} in {self.source.db.get_exec_duration()}ms)[/bold red] {eta}%"
+                    f"{i+1}/{loops} NOK [bold red]{self.source.name} hash:({source_hash}) (start: {i * bucket} limit:{(i + 1) * bucket} rows computed:{self.source.db.computed_rows()} in {self.source.db.get_exec_duration()} ms)[/bold red] {eta}%"
                 )
                 rprint(
-                    f"{i+1}/{loops} NOK [bold red]{self.target.name} hash:({target_hash}) (start: {i * bucket} stop:{(i + 1) * bucket} rows computed:{self.target.db.rowcount()} in {self.target.db.get_exec_duration()}ms)[/bold red] {eta}%"
+                    f"{i+1}/{loops} NOK [bold red]{self.target.name} hash:({target_hash}) (start: {i * bucket} limit:{(i + 1) * bucket} rows computed:{self.target.db.computed_rows()} in {self.target.db.get_exec_duration()} ms)[/bold red] {eta}%"
                 )
-                self.target.db.retreive_dataset()
-                self.source.db.retreive_dataset()
-                target_ds = Dataset(self.target.db.get_dataset(), self.target.name)
-                source_ds = Dataset(self.source.db.get_dataset(), self.source.name)
-                err = compare_d7(source_ds, target_ds)
+                err = compare_d7(self.source, self.target)
                 _errors = +err
             else:
                 rprint(
-                    f"{i+1}/{loops} OK [bold blue]{self.source.name} hash:({source_hash}) (start: {i * bucket} stop:{(i + 1) * bucket} rows computed:{self.source.db.rowcount()} in {self.source.db.get_exec_duration()}ms)[/bold blue] {eta}%"
+                    f"{i+1}/{loops} OK [bold blue]{self.source.name} hash:({source_hash}) (start: {i * bucket} limit:{bucket} rows computed:{self.source.db.computed_rows()} in {self.source.db.get_exec_duration()} ms)[/bold blue] {eta}%"
                 )
                 rprint(
-                    f"{i+1}/{loops} OK [bold blue]{self.target.name} hash:({target_hash}) (start: {i * bucket} stop:{(i + 1) * bucket} rows computed:{self.target.db.rowcount()} in {self.target.db.get_exec_duration()}ms)[/bold blue] {eta}%"
+                    f"{i+1}/{loops} OK [bold blue]{self.target.name} hash:({target_hash}) (start: {i * bucket} limit:{bucket} rows computed:{self.target.db.computed_rows()} in {self.target.db.get_exec_duration()} ms)[/bold blue] {eta}%"
                 )
-
-        # self.source.db.hash()
-        # self.target.db.hash()
-
-        # source_hash = self.source.db.computed_hash()
-        # target_hash = self.target.db.computed_hash()  # self.source.bhash()
-        # self.target.bhash()
-        # offset 3 row fetch next 2 row only;
-
-        # LOGGER.info("source hashed: [%s]", source_hash)
-        # LOGGER.info("target hashed: [%s]", target_hash)
+            if _errors>=self.max_delta:
+                break
 
         self.source.db.close()
         self.target.db.close()

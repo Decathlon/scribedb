@@ -1,4 +1,5 @@
 loglevel: INFO
+max_delta: 3
 source:
   name: src
   db:

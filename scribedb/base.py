@@ -45,6 +45,7 @@ class DBBase(BaseModel):
     _exec_duration: int = PrivateAttr(default=0)
     _computed_hash: str = PrivateAttr(default="")
     _hash_qry: str = PrivateAttr()
+    _computed_rows: int = PrivateAttr(default=0)
 
     _conn: Connection = PrivateAttr()
 
@@ -62,7 +63,7 @@ class DBBase(BaseModel):
             result = self._conn.execute(qry)
             if result.returns_rows:
                 resultset = result.fetchall()
-            self._exec_duration = (time.time_ns() - start) / 1000000
+            self._exec_duration = round((time.time_ns() - start) / 1000000)
             return resultset
         except Exception as err:
             self.log_exception(err)
@@ -82,6 +83,9 @@ class DBBase(BaseModel):
 
     def computed_hash(self):
         return self._computed_hash
+
+    def computed_rows(self):
+        return self._computed_rows
 
     # def computed_rows(self):
     #     return self._rows_computed
@@ -126,16 +130,17 @@ class DBBase(BaseModel):
         time = 0
         rows = 0
         for i in range(ESTIMATE_LOOP):
-            rprint(f"{self.type} Estimating round_trip, N° {i+1}")
             round_trip = round_trip + explain(self._roundtrip)
+            rprint(f"{self.type} measuring round_trip delay, N° {i+1} : {round_trip} ms")
         round_trip = round_trip / ESTIMATE_LOOP
-        for j in range(ESTIMATE_LOOP):
-            r = (j + 1) + j * 100
-            self.create_view(0, r)
-            for i in range(ESTIMATE_LOOP):
-                rprint(f"{self.type} Estimating for {r} rows, N° {i+1}")
-                time = time + explain(self._hash_qry)
-                rows = rows + r
+
+        r = round(self.rowcount()*1/100)
+        self.create_view(0, r)
+        for i in range(ESTIMATE_LOOP):
+            tm = explain(self._hash_qry)
+            time = time + tm
+            rprint(f"{self.type} calculate hash() duration for {r} rows, N° {i+1} : {tm} ms")
+            rows = rows + r
 
         tx = time / rows
         bucket = round((qry_exec_time - round_trip) / tx)
@@ -159,6 +164,7 @@ class DBBase(BaseModel):
     def hash(self, start=0, stop=0):
         self.create_view(start, stop)
         tmp = self.execquery(self._hash_qry)
+        self._computed_rows = self._computed_rows + self.rowcount()
         self._computed_hash = tmp[0]
 
     def retreive_dataset(self):
@@ -172,6 +178,22 @@ class DBBase(BaseModel):
         self.drop_view()
         self.drop_objects()
         self._conn.close()
+
+    def get_select(self, rnum):
+        """
+        create temporary view to be able to get the datatype for cast
+        drop the view if exists
+        """
+
+        parsed_qry = parse(self.qry)
+        stmt_orderby = parsed_qry.get("orderby")["value"]
+        stmt_new_field = {"value": f"ROW_NUMBER() OVER (ORDER BY {stmt_orderby})", "name": "rnum"}
+        parsed_qry.get("select").append(stmt_new_field)
+        sanitized_qry = format(parsed_qry).replace('"ROW', "ROW").replace(')" AS rnum', ") AS rnum")
+
+        stmt = f""" select * from ({sanitized_qry}) a where rnum = {rnum};"""
+        return stmt
+
 
     def get_ddl_view(self, start: int = 0, stop: int = 0):
         """
@@ -192,7 +214,7 @@ class DBBase(BaseModel):
         """
 
         if start != 0 or stop != 0:
-            sql = stmt + f" where rnum between {start} and {start}+{stop}"
+            sql = stmt + f" where rnum between {start+1} and {start}+{stop}"
         else:
             sql = stmt
 
