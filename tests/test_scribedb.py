@@ -100,6 +100,7 @@ class TestScribedb(TestCase):
         raw = config_file.json_config(filename)
         self.assertRaises(Exception, Compare.parse_raw, raw)
 
+    @pytest.mark.skip(reason="needs docker client libraries unavailable on Travis")
     def test_is_ok_with_2_pg(self):
         config_file = Configuration()
         filename = f"{PATH}/2_pg_config.yaml"
@@ -154,6 +155,7 @@ class TestScribedb(TestCase):
                 self.assertIsNotNone(compare.target.db.computed_hash())
                 self.assertEqual(compare.target.db.computed_hash(), compare.source.db.computed_hash())
 
+    @pytest.mark.skip(reason="needs docker client libraries unavailable on Travis")
     def test_is_nok_with_2_ora(self):
         config_file = Configuration()
         filename = f"{PATH}/2_ora_config.yaml"
@@ -178,7 +180,8 @@ class TestScribedb(TestCase):
 
                 raw = json.dumps(parsed_raw)
                 self.assertRaises(ValueError, Compare.parse_raw, raw)
-
+                
+    @pytest.mark.skip(reason="needs docker client libraries unavailable on Travis")
     def test_is_nok_with_2_pg(self):
         config_file = Configuration()
         filename = f"{PATH}/2_pg_config.yaml"
